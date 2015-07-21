@@ -1,0 +1,11 @@
+{
+  "name": "luggage.js",
+  "version": "1.0.0",
+  "description": "Dropbox file API wrapper for storing json data.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "dra1n",
+  "license": "ISC"
+}
