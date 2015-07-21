@@ -31,19 +31,19 @@ articles.on('data', (articles) => {
 
 ```
 articles.where({ author: 'John Doe' }).read().then((articles) => {
-  console.log('John's articles:', articles);
+  console.log('John\'s articles:', articles);
 });
 
 /* or you can provide a function */
 articles.where((article) => {
   return article.authors.includes('John Doe');
 }).read().then((articles) => {
-  console.log('John's articles:', articles);
+  console.log('John\'s articles:', articles);
 });
 
 /* Listen to filtered data updates */
 articles.where({ author: 'John Doe' }).on('data', (articles) => {
-  console.log('John's articles:', articles);
+  console.log('John\'s articles:', articles);
 })
 ```
 
@@ -52,17 +52,17 @@ articles.where({ author: 'John Doe' }).on('data', (articles) => {
 ```
 /* Collection#find returns the first record found */
 articles.find({ author: 'John Doe' }).read().then((article) => {
-  console.log('John's article:', article);
+  console.log('John\'s article:', article);
 });
 
 /* Collection#find takes a function */
 articles.find(article => article.author === 'John Doe').read().then((article) => {
-  console.log('John's article:', article);
+  console.log('John\'s article:', article);
 });
 
 /* Listen to single record updates */
 articles.find({ author: 'John Doe' }).on('data', (article) => {
-  console.log('John's article:', article);
+  console.log('John\'s article:', article);
 });
 ```
 
