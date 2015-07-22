@@ -35,16 +35,17 @@ articles.where({ author: 'John Doe' }).read().then((articles) => {
 });
 
 /* or you can provide a function */
-articles.where((article) => {
-  return article.authors.includes('John Doe');
-}).read().then((articles) => {
+articles.where(article => article.authors.includes('John Doe')).read().then((articles) => {
   console.log('John\'s articles:', articles);
 });
 
 /* Listen to filtered data updates */
 articles.where({ author: 'John Doe' }).on('data', (articles) => {
   console.log('John\'s articles:', articles);
-})
+});
+
+/* You can stack conditions */
+articles.where({ author: 'John Doe' }).where(article => article.comments > 0)
 ```
 
 ### Finding single record
