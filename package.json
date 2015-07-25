@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
+    "test-watch": "mocha --watch",
     "build": "babel ./src/Luggage.js --source-maps inline --out-file index.js",
     "watch": "babel ./src/Luggage.js --watch --source-maps inline --out-file index.js"
   },
