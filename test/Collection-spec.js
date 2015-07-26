@@ -6,14 +6,10 @@ import FilteredCollection from '../src/FilteredCollection';
 global.Dropbox = Dropbox;
 
 describe('Collection', () => {
-  var collection, client, quotes;
+  var collection, client;
 
   beforeEach(() => {
-    quotes = ['test quote'];
-
     client = new Dropbox.Client();
-    client.files['quotes.json'] = JSON.stringify(quotes);
-
     collection = new Collection('quotes', client);
   });
 
