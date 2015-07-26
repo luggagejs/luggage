@@ -7,7 +7,8 @@ global.Dropbox = Dropbox;
 describe('FilteredCollection', () => {
   const filters = {
     onlyQuotes(item) { return 'quote' in item },
-    authorJohn(item) { return item['author'] === 'John Doe' }
+    authorJohn(item) { return item['author'] === 'John Doe' },
+    authorJohnObject: { author: 'John Doe' }
   };
 
   var collection, client, quotes;
@@ -57,6 +58,12 @@ describe('FilteredCollection', () => {
       var onlyJohnsQuotes = collection.where(filters.authorJohn);
       expect(onlyJohnsQuotes.filters).to.deep.equal([filters.onlyQuotes, filters.authorJohn]);
     });
+
+    it('takes an object as a filter', () => {
+      collection = new FilteredCollection('quotes', client);
+      var onlyJohnsQuotes = collection.where(filters.authorJohnObject);
+      expect(onlyJohnsQuotes.filters).to.deep.equal([filters.authorJohnObject ])
+    });
   });
 
   describe('FilteredCollection#read', () => {
@@ -68,5 +75,20 @@ describe('FilteredCollection', () => {
         done();
       }).catch(done);
     });
-  })
+
+    it('uses objects as filters', (done) => {
+      collection = new FilteredCollection('quotes', client);
+      var onlyJohnsQuotes = collection.where(filters.authorJohnObject);
+
+      onlyJohnsQuotes.read().then((data) => {
+        expect(data).to.deep.equal([
+          { quote: 'get', author: 'John Doe' },
+          { book: 'Hey you', author: 'John Doe' }
+        ]);
+        done();
+      }).catch(done);
+    });
+  });
+
+
 })

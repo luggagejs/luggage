@@ -13,10 +13,18 @@ class FilteredCollection extends BaseCollection {
     return new FilteredCollection(this.name, this.client, this.filters.concat(filter))
   }
 
+  wrapFilter(filter) {
+    if (typeof filter === 'function') return filter;
+
+    return (item) => {
+      return Object.keys(filter).every((k) => filter[k] === item[k])
+    }
+  }
+
   read() {
     return super.read().then((data) => {
       return this.filters.reduce((res, filter) => {
-        return res.filter(filter);
+        return res.filter(this.wrapFilter(filter));
       }, data);
     });
   }
