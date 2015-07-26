@@ -9,6 +9,14 @@ class BaseCollection extends EventEmitter {
     this.fileName = `${name}.json`;
   }
 
+  create() {
+    return new Promise((resolve, reject) => {
+      this.client.writeFile(this.fileName, JSON.stringify([]), (error, stat) => {
+        error ? reject(error) : resolve(stat);
+      });
+    })
+  }
+
   read() {
     return new Promise((resolve, reject) => {
       this.client.readFile(this.fileName, (error, data) => {
