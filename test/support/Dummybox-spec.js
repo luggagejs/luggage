@@ -53,6 +53,13 @@ describe('Dummybox', () => {
           done();
         })
       })
+
+      it('invokes callback with NOT_FOUND error if file not exists', (done) => {
+        client.readFile('notexists.txt', (error) => {
+          expect(error).to.equal(Dummybox.ApiError.NOT_FOUND);
+          done();
+        })
+      })
     });
 
     describe('Dummybox.Client#writeFile', () => {
@@ -66,5 +73,18 @@ describe('Dummybox', () => {
         client.writeFile('yetanother.txt', 'lol', done)
       })
     });
+  });
+
+  describe('Dummybox.ApiError', () => {
+    it('defines a bunch of error constants', () => {
+      expect(Dummybox.ApiError).to.have.property('INVALID_TOKEN');
+      expect(Dummybox.ApiError).to.have.property('NOT_FOUND');
+      expect(Dummybox.ApiError).to.have.property('OVER_QUOTA');
+      expect(Dummybox.ApiError).to.have.property('RATE_LIMITED');
+      expect(Dummybox.ApiError).to.have.property('NETWORK_ERROR');
+      expect(Dummybox.ApiError).to.have.property('INVALID_PARAM');
+      expect(Dummybox.ApiError).to.have.property('OAUTH_ERROR');
+      expect(Dummybox.ApiError).to.have.property('INVALID_METHOD');
+    })
   });
 })

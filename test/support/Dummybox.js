@@ -14,7 +14,15 @@ class Client {
   isAuthenticated() { return true }
 
   readFile(name, callback) {
-    if (callback) this.async(callback.bind(this, null, this.files[name]))
+    if (!callback) return;
+
+    this.async(() => {
+      if(name in this.files) {
+        callback(null, this.files[name]);
+      } else {
+        callback(Dummybox.ApiError.NOT_FOUND);
+      }
+    })
   }
 
   writeFile(name, data, callback) {
@@ -23,6 +31,18 @@ class Client {
   }
 }
 
+const ApiError = {
+  INVALID_TOKEN: 'INVALID_TOKEN',
+  NOT_FOUND: 'NOT_FOUND',
+  OVER_QUOTA: 'OVER_QUOTA',
+  RATE_LIMITED: 'RATE_LIMITED',
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  INVALID_PARAM: 'INVALID_PARAM',
+  OAUTH_ERROR: 'OAUTH_ERROR',
+  INVALID_METHOD: 'INVALID_METHOD'
+}
+
 Dummybox.Client = Client;
+Dummybox.ApiError = ApiError;
 
 export default Dummybox;
