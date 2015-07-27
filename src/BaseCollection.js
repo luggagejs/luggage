@@ -6,8 +6,9 @@ class BaseCollection extends EventEmitter {
 
     this.client = client;
     this.name = name;
-    this.fileName = `${name}.json`;
   }
+
+  get fileName() { return `${this.name}.json` }
 
   create() {
     return new Promise((resolve, reject) => {
