@@ -10,9 +10,9 @@ class BaseCollection extends EventEmitter {
 
   get fileName() { return `${this.name}.json` }
 
-  create() {
+  write(data=[]) {
     return new Promise((resolve, reject) => {
-      this.client.writeFile(this.fileName, JSON.stringify([]), (error, stat) => {
+      this.client.writeFile(this.fileName, JSON.stringify(data), (error, stat) => {
         error ? reject(error) : resolve(stat);
       });
     })
@@ -27,7 +27,7 @@ class BaseCollection extends EventEmitter {
             resolve(JSON.parse(data));
             break;
           case Dropbox.ApiError.NOT_FOUND:
-            this.create().then(() => resolve([]));
+            this.write().then(() => resolve([]));
             break;
           default:
             reject(error)

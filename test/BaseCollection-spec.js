@@ -23,11 +23,11 @@ describe('BaseCollection', () => {
     expect(collection).to.respondTo('emit');
   });
 
-  describe('BaseCollection#create', () => {
-    it('creates empty collection', (done) => {
+  describe('BaseCollection#write', () => {
+    it('writes empty collection', (done) => {
       collection = new BaseCollection('newcollection', client);
 
-      collection.create().then(() => {
+      collection.write().then(() => {
         expect(client.files).to.have.property('newcollection.json')
         done();
       }).catch(done);
