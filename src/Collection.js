@@ -1,8 +1,8 @@
-import BaseCollection from './BaseCollection';
+import Readable from './traits/Readable';
 import FilteredCollection from './FilteredCollection';
 import Record from './Record';
 
-class Collection extends BaseCollection {
+class Collection extends Readable {
   where(filter) {
     return new FilteredCollection(this.name, this.client, filter);
   }

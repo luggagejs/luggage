@@ -1,6 +1,6 @@
-import BaseCollection from '../BaseCollection';
+import Readable from './Readable';
 
-class Filterable extends BaseCollection {
+class Filterable extends Readable {
   filters = []
 
   constructor(name, client, filters) {

@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import Dropbox from './support/Dummybox';
-import BaseCollection from '../src/BaseCollection';
-import FilteredCollection from '../src/FilteredCollection';
+import Dropbox from '../support/Dummybox';
+import Readable from '../../src/traits/Readable';
+import FilteredCollection from '../../src/FilteredCollection';
 
 global.Dropbox = Dropbox;
 
-describe('BaseCollection', () => {
+describe('Readable', () => {
   var collection, client, quotes;
 
   beforeEach(() => {
@@ -14,7 +14,7 @@ describe('BaseCollection', () => {
     client = new Dropbox.Client();
     client.files['quotes.json'] = JSON.stringify(quotes);
 
-    collection = new BaseCollection('quotes', client);
+    collection = new Readable('quotes', client);
   });
 
   it('should be an event emitter', () => {
@@ -23,9 +23,9 @@ describe('BaseCollection', () => {
     expect(collection).to.respondTo('emit');
   });
 
-  describe('BaseCollection#write', () => {
+  describe('Readable#write', () => {
     it('writes empty collection', (done) => {
-      collection = new BaseCollection('newcollection', client);
+      collection = new Readable('newcollection', client);
 
       collection.write().then(() => {
         expect(client.files).to.have.property('newcollection.json')
@@ -34,7 +34,7 @@ describe('BaseCollection', () => {
     });
   });
 
-  describe('BaseCollection#read', () => {
+  describe('Readable#read', () => {
     it('returns an array Promise', (done) => {
       collection.read().then((data) => {
         expect(data).to.deep.equal(quotes);
@@ -43,7 +43,7 @@ describe('BaseCollection', () => {
     });
 
     it('creates empty collection if not exists', (done) => {
-      collection = new BaseCollection('nonexistent', client);
+      collection = new Readable('nonexistent', client);
 
       collection.read().then((data) => {
         expect(client.files).to.have.property('nonexistent.json')

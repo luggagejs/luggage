@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 
-class BaseCollection extends EventEmitter {
+class Readable extends EventEmitter {
   constructor(name, client) {
     super();
 
@@ -37,4 +37,4 @@ class BaseCollection extends EventEmitter {
   }
 }
 
-export default BaseCollection;
+export default Readable;
