@@ -1,27 +1,44 @@
 import Readable from './Readable';
 
-class Filterable extends Readable {
-  filters = []
+function wrapFilter(filter) {
+  if (typeof filter === 'function') return filter;
 
-  constructor(name, client, filters) {
-    super(name, client);
+  return (item) => {
+    return Object.keys(filter).every((k) => filter[k] === item[k])
+  }
+}
 
-    if (filters) this.filters = this.filters.concat(filters);
+class Filterable {
+  where(filter) {
+    return new FilteredCollection(this, wrapFilter(filter));
   }
 
-  wrapFilter(filter) {
-    if (typeof filter === 'function') return filter;
+  find(filter) {
+    return new Record(this.where(filter));
+  }
+}
 
-    return (item) => {
-      return Object.keys(filter).every((k) => filter[k] === item[k])
-    }
+class FilteredCollection extends Filterable {
+  constructor(collection, filter) {
+    this.collection = collection;
+    this.filter = filter;
   }
 
   read() {
-    return super.read().then((data) => {
-      return this.filters.reduce((res, filter) => {
-        return res.filter(this.wrapFilter(filter));
-      }, data);
+    return this.collection.read().then((data) => {
+      return data.filter(this.filter);
+    });
+  }
+}
+
+class Record {
+  constructor(collection) {
+    this.collection = collection;
+  }
+
+  read() {
+    return this.colleciton.read().then((data) => {
+      return data[0];
     });
   }
 }

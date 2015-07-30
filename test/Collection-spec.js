@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import Dropbox from './support/Dummybox';
 import Collection from '../src/Collection';
 import Record from '../src/Record';
-import FilteredCollection from '../src/FilteredCollection';
+import Filterable from '../src/traits/Filterable';
 
 global.Dropbox = Dropbox;
 
@@ -15,14 +15,29 @@ describe('Collection', () => {
   });
 
   describe('Collection#where', () => {
-    it('returns instance of FilteredCollection', () => {
-      expect(collection.where(() => true)).to.be.instanceof(FilteredCollection);
+    it('returns instance of Filterable', () => {
+      expect(collection.where(() => true)).to.be.instanceof(Filterable);
     });
   });
 
   describe('Collection#find', () => {
-    it('returns instance of Record', () => {
-      expect(collection.find({id: 42})).to.be.instanceof(Record);
+    it('returns single record', (done) => {
+      collection.find({id: 42}).read().then((data) => {
+        expect(data).to.be.undefined;
+        done();
+      })
     });
   });
+
+  describe('Collection#write', () => {
+    it('writes empty collection', (done) => {
+      collection = new Collection('newcollection', client);
+
+      collection.write().then(() => {
+        expect(client.files).to.have.property('newcollection.json')
+        done();
+      }).catch(done);
+    });
+  });
+
 });

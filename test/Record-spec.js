@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import Dropbox from './support/Dummybox';
-import Record from '../src/Record';
+import Collection from '../src/Record';
 
 global.Dropbox = Dropbox;
 
@@ -22,9 +22,9 @@ describe('Record', () => {
 
   describe('Record#read', () => {
     it('returns record as a Promise', (done) => {
-      record = new Record('quotes', client, { quote: 'get' });
+      record = new Collection('quotes', client);
 
-      record.read().then((data) => {
+      record.find({ quote: 'get' }).read().then((data) => {
         expect(data).to.deep.equal({ quote: 'get', author: 'John Doe' });
         done();
       }).catch(done);

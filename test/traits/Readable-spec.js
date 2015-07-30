@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import Dropbox from '../support/Dummybox';
 import Readable from '../../src/traits/Readable';
-import FilteredCollection from '../../src/FilteredCollection';
 
 global.Dropbox = Dropbox;
 
@@ -23,17 +22,6 @@ describe('Readable', () => {
     expect(collection).to.respondTo('emit');
   });
 
-  describe('Readable#write', () => {
-    it('writes empty collection', (done) => {
-      collection = new Readable('newcollection', client);
-
-      collection.write().then(() => {
-        expect(client.files).to.have.property('newcollection.json')
-        done();
-      }).catch(done);
-    });
-  });
-
   describe('Readable#read', () => {
     it('returns an array Promise', (done) => {
       collection.read().then((data) => {
@@ -46,7 +34,6 @@ describe('Readable', () => {
       collection = new Readable('nonexistent', client);
 
       collection.read().then((data) => {
-        expect(client.files).to.have.property('nonexistent.json')
         expect(data).to.deep.equal([]);
         done();
       }).catch(done);
