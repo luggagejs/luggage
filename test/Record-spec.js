@@ -35,10 +35,10 @@ describe('Record', () => {
   });
 
   describe('Record#update', () => {
-    var updatePromise;
+    var record, updatePromise;
 
     beforeEach(() => {
-      var record = collection.find({ quote: 'get' });
+      record = collection.find({ quote: 'get' });
 
       updatePromise = record.update((r) => {
         r.quote = 'get it done';
@@ -59,6 +59,21 @@ describe('Record', () => {
     it('returns Promise with new data', (done) => {
       updatePromise.then((data) => {
         expect(data).to.include({ quote: 'get it done', author: 'John Doe' });
+        expect(data).not.to.include({ quote: 'get', author: 'John Doe' });
+        done();
+      }).catch(done);
+    });
+
+    it('takes an object as part of an update', (done) => {
+      record.update({
+        quote: 'get it done',
+        famous: true
+      }).then((data) => {
+        expect(data).to.include({
+          quote: 'get it done',
+          author: 'John Doe',
+          famous: true
+        });
         expect(data).not.to.include({ quote: 'get', author: 'John Doe' });
         done();
       }).catch(done);

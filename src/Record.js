@@ -1,3 +1,13 @@
+function wrapTransform(transform) {
+  if (typeof transform === "function") {
+    return transform;
+  }
+
+  return (record) => {
+    return Object.assign({}, record, transform);
+  };
+}
+
 class Record {
   constructor(collection) {
     this.collection = collection;
@@ -10,7 +20,7 @@ class Record {
   }
 
   update(transform) {
-    return this.collection.updateRecord(this, transform);
+    return this.collection.updateRecord(this, wrapTransform(transform));
   }
 }
 
