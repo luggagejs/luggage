@@ -84,9 +84,6 @@ articles.find(article => article.id === 42).update((article) => {
   article.authors.push('Jane Doe');
   return article;           // Do not forget to return new record
 })
-.then((article) => {
-  console.log('Article authors:', article.authors);
-});
 ```
 
 ### Adding new record
