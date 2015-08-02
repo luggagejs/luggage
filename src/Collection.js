@@ -46,24 +46,20 @@ class Collection extends Filterable {
   }
 
   updateRecord(record, transform) {
-    return record.read().then((record) => {
-      return [record, transform.call(null, Object.assign({}, record))]
-    }).then(([oldRecord, newRecord]) => {
-      return this.read().then((data) => {
-        var recordIndex = data.findIndex(r => equal(r, oldRecord));
-        data[recordIndex] = newRecord;
-        return data;
-      })
+    return Promise.all([record.read(), this.read()]).then(([record, data]) => {
+      var recordIndex = data.findIndex(r => equal(r, record));
+      return [recordIndex, record, data];
+    }).then(([recordIndex, record, data]) => {
+      data[recordIndex] = transform.call(null, Object.assign({}, record));
+      return data;
     }).then(data => this.write(data));
   }
 
   deleteRecord(record) {
-    return record.read().then((record) => {
-      return this.read().then((data) => {
-        var recordIndex = data.findIndex(r => equal(r, record));
-        data.splice(recordIndex, 1);
-        return data;
-      })
+    return Promise.all([record.read(), this.read()]).then(([record, data]) => {
+      var recordIndex = data.findIndex(r => equal(r, record));
+      data.splice(recordIndex, 1);
+      return data;
     }).then(data => this.write(data));
   }
 }
