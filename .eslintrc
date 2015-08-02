@@ -1,4 +1,5 @@
 {
+    "extends": "future",
     "ecmaFeatures": {
         "modules": true
     },

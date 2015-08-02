@@ -7,14 +7,18 @@
     "test": "mocha",
     "test-watch": "mocha --watch",
     "build": "babel ./src/Luggage.js --source-maps inline --out-file index.js",
-    "watch": "babel ./src/Luggage.js --watch --source-maps inline --out-file index.js"
+    "watch": "babel ./src/Luggage.js --watch --source-maps inline --out-file index.js",
+    "lint": "eslint src test"
   },
   "author": "dra1n",
   "license": "ISC",
   "devDependencies": {
     "babel": "^5.6.23",
+    "babel-eslint": "^3.1.30",
     "chai": "^3.2.0",
     "eslint": "^0.24.1",
+    "eslint-config-future": "^2.1.1",
+    "eslint-plugin-react": "^2.7.1",
     "mocha": "^2.2.5"
   }
 }
