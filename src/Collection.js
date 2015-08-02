@@ -1,5 +1,6 @@
+/* global Dropbox */
+
 import Filterable from './traits/Filterable';
-import Record from './Record';
 
 class Collection extends Filterable {
   constructor(name, client) {

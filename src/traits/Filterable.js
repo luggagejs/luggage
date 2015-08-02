@@ -1,4 +1,4 @@
-import Readable from './Readable';
+import Record from '../Record';
 
 function wrapFilter(filter) {
   if (typeof filter === 'function') return filter;
@@ -13,6 +13,10 @@ class Filterable {
     return new FilteredCollection(this, wrapFilter(filter));
   }
 
+  and(filter) {
+    return this.where(filter);
+  }
+
   find(filter) {
     return new Record(this.where(filter));
   }
@@ -20,6 +24,8 @@ class Filterable {
 
 class FilteredCollection extends Filterable {
   constructor(collection, filter) {
+    super()
+
     this.collection = collection;
     this.filter = filter;
   }
@@ -27,18 +33,6 @@ class FilteredCollection extends Filterable {
   read() {
     return this.collection.read().then((data) => {
       return data.filter(this.filter);
-    });
-  }
-}
-
-class Record {
-  constructor(collection) {
-    this.collection = collection;
-  }
-
-  read() {
-    return this.colleciton.read().then((data) => {
-      return data[0];
     });
   }
 }

@@ -1,8 +1,10 @@
-import Filterable from './traits/Filterable';
+class Record {
+  constructor(collection) {
+    this.collection = collection;
+  }
 
-class Record extends Filterable {
   read() {
-    return super.read().then((data) => {
+    return this.collection.read().then((data) => {
       return data[0];
     });
   }
