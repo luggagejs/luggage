@@ -46,28 +46,42 @@ class Collection extends Filterable {
   }
 
   add(newRecord) {
-    return this.read().then((data) => {
-      data.push(newRecord);
-      return data;
-    }).then(data => this.write(data)).then(() => newRecord);
+    return (
+      this.read()
+      .then((data) => {
+        data.push(newRecord);
+        return data;
+      })
+      .then(data => this.write(data))
+      .then(() => newRecord)
+    );
   }
 
   updateRecord(record, transform) {
-    return Promise.all([record.read(), this.read()]).then(([record, data]) => {
-      var recordIndex = data.findIndex(r => equal(r, record));
-      return [recordIndex, record, data];
-    }).then(([recordIndex, record, data]) => {
-      data[recordIndex] = transform.call(null, Object.assign({}, record));
-      return data;
-    }).then(data => this.write(data));
+    return (
+      Promise.all([record.read(), this.read()])
+      .then(([record, data]) => {
+        var recordIndex = data.findIndex(r => equal(r, record));
+        return [recordIndex, record, data];
+      })
+      .then(([recordIndex, record, data]) => {
+        data[recordIndex] = transform.call(null, Object.assign({}, record));
+        return data;
+      })
+      .then(data => this.write(data))
+    );
   }
 
   deleteRecord(record) {
-    return Promise.all([record.read(), this.read()]).then(([record, data]) => {
-      var recordIndex = data.findIndex(r => equal(r, record));
-      data.splice(recordIndex, 1);
-      return data;
-    }).then(data => this.write(data));
+    return (
+      Promise.all([record.read(), this.read()])
+      .then(([record, data]) => {
+        var recordIndex = data.findIndex(r => equal(r, record));
+        data.splice(recordIndex, 1);
+        return data;
+      })
+      .then(data => this.write(data))
+    );
   }
 }
 
