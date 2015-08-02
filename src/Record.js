@@ -22,6 +22,10 @@ class Record {
   update(transform) {
     return this.collection.updateRecord(this, wrapTransform(transform));
   }
+
+  delete() {
+    return this.collection.deleteRecord(this);
+  }
 }
 
 export default Record;

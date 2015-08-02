@@ -6,9 +6,11 @@ import Collection from '../src/Collection';
 global.Dropbox = Dropbox;
 
 describe('Record', () => {
-  var collection, client, quotes;
+  var record, client, quotes;
 
   beforeEach(() => {
+    var collection;
+
     quotes = [
       { quote: 'hey' },
       { quote: 'you', author: 'unknown' },
@@ -21,12 +23,11 @@ describe('Record', () => {
     client.files['quotes.json'] = JSON.stringify(quotes);
 
     collection = new Collection('quotes', client);
+    record = collection.find({ quote: 'get' });
   });
 
   describe('Record#read', () => {
     it('returns record as a Promise', (done) => {
-      var record = collection.find({ quote: 'get' });
-
       record.read().then((data) => {
         expect(data).to.deep.equal({ quote: 'get', author: 'John Doe' });
         done();
@@ -35,11 +36,9 @@ describe('Record', () => {
   });
 
   describe('Record#update', () => {
-    var record, updatePromise;
+    var updatePromise;
 
     beforeEach(() => {
-      record = collection.find({ quote: 'get' });
-
       updatePromise = record.update((r) => {
         r.quote = 'get it done';
         return r;
@@ -74,6 +73,24 @@ describe('Record', () => {
           author: 'John Doe',
           famous: true
         });
+        expect(data).not.to.include({ quote: 'get', author: 'John Doe' });
+        done();
+      }).catch(done);
+    });
+  });
+
+  describe("Record#delete", () => {
+    it('writes new data to json file', (done) => {
+      record.delete().then(() => {
+        var fileData = JSON.parse(client.files['quotes.json']);
+
+        expect(fileData).to.not.include({ quote: 'get', author: 'John Doe' })
+        done();
+      }).catch(done);
+    });
+
+    it('returns Promise with new data', (done) => {
+      record.delete().then((data) => {
         expect(data).not.to.include({ quote: 'get', author: 'John Doe' });
         done();
       }).catch(done);

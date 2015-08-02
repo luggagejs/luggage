@@ -41,6 +41,10 @@ class FilteredCollection extends Filterable {
   updateRecord(record, transform) {
     return this.collection.updateRecord(record, transform);
   }
+
+  deleteRecord(record) {
+    return this.collection.deleteRecord(record);
+  }
 }
 
 export default Filterable;
