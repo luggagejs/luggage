@@ -18,22 +18,6 @@ describe('Collection', () => {
     collection = new Collection('quotes', client);
   });
 
-  describe('Collection#find', () => {
-    it('returns undefined if nothing was found', (done) => {
-      collection.find({id: 42}).read().then((data) => {
-        expect(data).to.be.undefined;
-        done();
-      }).catch(done);
-    });
-
-    it('returns a record data if was found', (done) => {
-      collection.find(quote => quote.match(/test/)).read().then((data) => {
-        expect(data).to.equal('test quote');
-        done();
-      }).catch(done);
-    });
-  });
-
   describe('Collection#write', () => {
     it('writes empty collection', (done) => {
       collection = new Collection('newcollection', client);
@@ -73,7 +57,7 @@ describe('Collection', () => {
     beforeEach(() => {
       quotes = [
         { quote: 'hey' },
-        { quote: 'you', author: 'unknown' },
+        { quote: 'get', author: 'unknown' },
         { quote: 'get', author: 'John Doe' },
         { book: 'Hey you', author: 'John Doe' },
         { bla: 'blah blah blah mr. Freeman' },
@@ -103,6 +87,34 @@ describe('Collection', () => {
         expect(onlyJohnsQuotes.filter).to.be.a('function')
       });
     });
+
+    describe('Filterable#find', () => {
+      it('returns undefined if nothing was found', (done) => {
+        collection.find({id: 42}).read().then((data) => {
+          expect(data).to.be.undefined;
+          done();
+        }).catch(done);
+      });
+
+      it('returns a record data if was found', (done) => {
+        collection.find({book: 'Hey you'}).read().then((data) => {
+          expect(data).to.deep.equal({ book: 'Hey you', author: 'John Doe' });
+          done();
+        }).catch(done);
+      });
+
+      it('works on already filtered collection', (done) => {
+        collection
+          .where({quote: 'get'})
+          .find({author: 'John Doe'})
+          .read()
+          .then((data) => {
+            expect(data).to.deep.equal({ quote: 'get', author: 'John Doe' });
+            done();
+          }).catch(done);
+      });
+    });
+
 
     describe('Filterable#read', () => {
       it('returns a Promise with filtered data', (done) => {
