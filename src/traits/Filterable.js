@@ -1,11 +1,13 @@
-import Record from '../Record';
+import Record from "../Record";
 
 function wrapFilter(filter) {
-  if (typeof filter === 'function') return filter;
+  if (typeof filter === "function") {
+    return filter;
+  }
 
   return (item) => {
-    return Object.keys(filter).every((k) => filter[k] === item[k])
-  }
+    return Object.keys(filter).every((k) => filter[k] === item[k]);
+  };
 }
 
 class Filterable {
@@ -24,7 +26,7 @@ class Filterable {
 
 class FilteredCollection extends Filterable {
   constructor(collection, filter) {
-    super()
+    super();
 
     this.collection = collection;
     this.filter = filter;

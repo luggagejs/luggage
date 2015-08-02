@@ -8,7 +8,7 @@
     "test-watch": "mocha --watch",
     "build": "babel ./src/Luggage.js --source-maps inline --out-file index.js",
     "watch": "babel ./src/Luggage.js --watch --source-maps inline --out-file index.js",
-    "lint": "eslint src test"
+    "lint": "eslint src"
   },
   "author": "dra1n",
   "license": "ISC",

@@ -1,6 +1,6 @@
 /* global Dropbox */
 
-import Filterable from './traits/Filterable';
+import Filterable from "./traits/Filterable";
 
 class Collection extends Filterable {
   constructor(name, client) {
@@ -10,7 +10,9 @@ class Collection extends Filterable {
     this.name = name;
   }
 
-  get fileName() { return `${this.name}.json` }
+  get fileName() {
+    return `${this.name}.json`;
+  }
 
   read() {
     return new Promise((resolve, reject) => {
@@ -24,10 +26,10 @@ class Collection extends Filterable {
             resolve([]);
             break;
           default:
-            reject(error)
+            reject(error);
         }
-      })
-    })
+      });
+    });
   }
 
   write(data=[]) {
@@ -39,8 +41,8 @@ class Collection extends Filterable {
           resolve(stat);
         }
       });
-    })
+    });
   }
 }
 
-export default Collection
+export default Collection;
