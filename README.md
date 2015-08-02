@@ -46,6 +46,10 @@ articles.where({ author: 'John Doe' }).on('data', (articles) => {
 
 /* You can stack conditions */
 articles.where({ author: 'John Doe' }).where(article => article.comments > 0)
+
+/* or more readable */
+articles.where({ author: 'John Doe' }).and(article => article.comments > 0)
+
 ```
 
 ### Finding single record
