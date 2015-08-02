@@ -45,6 +45,13 @@ class Collection extends Filterable {
     });
   }
 
+  add(newRecord) {
+    return this.read().then((data) => {
+      data.push(newRecord);
+      return data;
+    }).then(data => this.write(data)).then(() => newRecord);
+  }
+
   updateRecord(record, transform) {
     return Promise.all([record.read(), this.read()]).then(([record, data]) => {
       var recordIndex = data.findIndex(r => equal(r, record));

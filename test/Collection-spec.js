@@ -47,6 +47,39 @@ describe('Collection', () => {
     });
   });
 
+  describe('Collection#add', () => {
+    var newRecord;
+
+    beforeEach(() => {
+      newRecord = { 'new article': 'indeed' };
+    });
+
+    it('adds new record to new collection', (done) => {
+      collection = new Collection('nonexistent', client);
+
+      collection.add(newRecord).then(() => {
+        var fileData = JSON.parse(client.files['nonexistent.json']);
+        expect(fileData).to.include(newRecord);
+        done();
+      }).catch(done);
+    });
+
+    it('adds new record to existing collection', (done) => {
+      collection.add(newRecord).then(() => {
+        var fileData = JSON.parse(client.files['quotes.json']);
+        expect(fileData).to.include(newRecord);
+        done();
+      }).catch(done);
+    });
+
+    it('returns a Promise with newly added record', (done) => {
+      collection.add(newRecord).then((record) => {
+        expect(record).to.deep.equal(newRecord);
+        done();
+      }).catch(done);
+    });
+  });
+
   describe('Collection as Filterable', () => {
     const filters = {
       onlyQuotes(item) { return 'quote' in item },
