@@ -8,6 +8,10 @@ class Record {
       return data[0];
     });
   }
+
+  update(transform) {
+    return this.collection.updateRecord(this, transform);
+  }
 }
 
 export default Record;

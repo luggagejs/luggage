@@ -1,5 +1,6 @@
 /* global Dropbox */
 
+import equal from "deep-equal";
 import Filterable from "./traits/Filterable";
 
 class Collection extends Filterable {
@@ -38,9 +39,21 @@ class Collection extends Filterable {
         if (error) {
           reject(error);
         } else {
-          resolve(stat);
+          resolve(data);
         }
       });
+    });
+  }
+
+  updateRecord(record, transform) {
+    return record.read().then((record) => {
+      return [record, transform.call(null, Object.assign({}, record))]
+    }).then(([oldRecord, newRecord]) => {
+      return this.read().then((data) => {
+        var recordIndex = data.findIndex(r => equal(r, oldRecord));
+        data[recordIndex] = newRecord;
+        return this.write(data);
+      })
     });
   }
 }

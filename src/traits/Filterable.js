@@ -37,6 +37,10 @@ class FilteredCollection extends Filterable {
       return data.filter(this.filter);
     });
   }
+
+  updateRecord(record, transform) {
+    return this.collection.updateRecord(record, transform);
+  }
 }
 
 export default Filterable;
