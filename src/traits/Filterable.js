@@ -1,3 +1,4 @@
+import delegate from "../lib/delegate";
 import Record from "../Record";
 
 function wrapFilter(filter) {
@@ -30,20 +31,15 @@ class FilteredCollection extends Filterable {
 
     this.collection = collection;
     this.filter = filter;
+
+    delegate(this, 'updateRecord', this.collection);
+    delegate(this, 'deleteRecord', this.collection);
   }
 
   read() {
     return this.collection.read().then((data) => {
       return data.filter(this.filter);
     });
-  }
-
-  updateRecord(record, transform) {
-    return this.collection.updateRecord(record, transform);
-  }
-
-  deleteRecord(record) {
-    return this.collection.deleteRecord(record);
   }
 }
 
