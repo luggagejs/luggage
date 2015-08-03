@@ -56,7 +56,9 @@ describe('Record', () => {
     });
 
     it('returns Promise with new data', (done) => {
-      updatePromise.then((data) => {
+      updatePromise.then(([newRecord, oldRecord, data]) => {
+        expect(newRecord).to.deep.equal({ quote: 'get it done', author: 'John Doe' });
+        expect(oldRecord).to.deep.equal({ quote: 'get', author: 'John Doe' });
         expect(data).to.include({ quote: 'get it done', author: 'John Doe' });
         expect(data).not.to.include({ quote: 'get', author: 'John Doe' });
         done();
@@ -67,13 +69,8 @@ describe('Record', () => {
       record.update({
         quote: 'get it done',
         famous: true
-      }).then((data) => {
-        expect(data).to.include({
-          quote: 'get it done',
-          author: 'John Doe',
-          famous: true
-        });
-        expect(data).not.to.include({ quote: 'get', author: 'John Doe' });
+      }).then(([record]) => {
+        expect(record).to.deep.equal({ quote: 'get it done', author: 'John Doe', famous: true });
         done();
       }).catch(done);
     });

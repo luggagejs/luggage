@@ -75,7 +75,7 @@ articles.find({ author: 'John Doe' }).on('data', (article) => {
 
 ```
 /* Simple merge with existing record */
-articles.find({ id: 1 }).update({ author: 'Jane Doe' }).then((article) => {
+articles.find({ id: 1 }).update({ author: 'Jane Doe' }).then(([article]) => {
   console.log('Author changed:', article.author);
 });
 
