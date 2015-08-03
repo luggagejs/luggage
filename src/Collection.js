@@ -50,10 +50,8 @@ class Collection extends Filterable {
       this.read()
       .then((data) => {
         data.push(newRecord);
-        return data;
+        return Promise.all([newRecord, this.write(data)]);
       })
-      .then(data => this.write(data))
-      .then(() => newRecord)
     );
   }
 

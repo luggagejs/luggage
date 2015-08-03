@@ -73,8 +73,9 @@ describe('Collection', () => {
     });
 
     it('returns a Promise with newly added record', (done) => {
-      collection.add(newRecord).then((record) => {
+      collection.add(newRecord).then(([record, data]) => {
         expect(record).to.deep.equal(newRecord);
+        expect(data).to.include(record);
         done();
       }).catch(done);
     });

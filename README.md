@@ -89,7 +89,7 @@ articles.find(article => article.id === 42).update((article) => {
 ### Adding new record
 
 ```
-articles.add({ author: 'John Doe', body: 'Blah blah blah mr. Freeman' }).then((article) => {
+articles.add({ author: 'John Doe', body: 'Blah blah blah mr. Freeman' }).then(([article]) => {
   console.log('New article was added:', article);
 });
 ```
