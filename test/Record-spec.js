@@ -87,7 +87,8 @@ describe('Record', () => {
     });
 
     it('returns Promise with new data', (done) => {
-      record.delete().then((data) => {
+      record.delete().then(([record, data]) => {
+        expect(record).to.deep.equal({ quote: 'get', author: 'John Doe' });
         expect(data).not.to.include({ quote: 'get', author: 'John Doe' });
         done();
       }).catch(done);

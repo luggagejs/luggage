@@ -97,7 +97,7 @@ articles.add({ author: 'John Doe', body: 'Blah blah blah mr. Freeman' }).then(([
 ### Deleting record
 
 ```
-articles.find({ id: 1 }).delete().then((article) => {
+articles.find({ id: 1 }).delete().then(([article]) => {
   console.log('No longer within collection:', article);
 });
 
