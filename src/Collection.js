@@ -1,8 +1,12 @@
 /* global Dropbox */
 
 import equal from "deep-equal";
+import { EventEmitter } from "events";
+import { DATA_EVENT } from "./constants/events";
 import Filterable from "./traits/Filterable";
+import compose from "./lib/compose";
 
+@compose(EventEmitter.prototype)
 class Collection extends Filterable {
   constructor(name, client) {
     super();
@@ -21,9 +25,11 @@ class Collection extends Filterable {
         switch (error) {
           case undefined:
           case null:
+            this.emit(DATA_EVENT, JSON.parse(data));
             resolve(JSON.parse(data));
             break;
           case Dropbox.ApiError.NOT_FOUND:
+            this.emit(DATA_EVENT, []);
             resolve([]);
             break;
           default:
@@ -39,6 +45,7 @@ class Collection extends Filterable {
         if (error) {
           reject(error);
         } else {
+          this.emit(DATA_EVENT, data);
           resolve(data);
         }
       });

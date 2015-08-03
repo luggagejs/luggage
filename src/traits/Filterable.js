@@ -1,4 +1,8 @@
+import { EventEmitter } from "events";
+
+import { DATA_EVENT } from "../constants/events";
 import delegate from "../lib/delegate";
+import compose from "../lib/compose";
 import Record from "../Record";
 
 function wrapFilter(filter) {
@@ -25,12 +29,15 @@ class Filterable {
   }
 }
 
+@compose(EventEmitter.prototype)
 class FilteredCollection extends Filterable {
   constructor(collection, filter) {
     super();
 
     this.collection = collection;
     this.filter = filter;
+
+    this.collection.on(DATA_EVENT, this.dataChanged.bind(this));
 
     delegate(this, 'updateRecord', this.collection);
     delegate(this, 'deleteRecord', this.collection);
@@ -40,6 +47,10 @@ class FilteredCollection extends Filterable {
     return this.collection.read().then((data) => {
       return data.filter(this.filter);
     });
+  }
+
+  dataChanged(data) {
+    this.emit(DATA_EVENT, data.filter(this.filter));
   }
 }
 

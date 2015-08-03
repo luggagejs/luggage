@@ -173,6 +173,69 @@ describe('Collection', () => {
           done();
         }).catch(done);
       });
+
+      describe('Filterable as EventEmitter', () => {
+        it('emits data event after data read', (done) => {
+          var onlyQuotes = collection.where(filters.onlyQuotes);
+
+          onlyQuotes.on('data', (data) => {
+            expect(data.length).to.equal(3);
+            done();
+          });
+
+          onlyQuotes.read();
+        });
+
+        it('emits with correct payload when chained', (done) => {
+          var johnsQuotes = collection
+            .where(filters.onlyQuotes)
+            .and(filters.authorJohn);
+
+          var counter = 0;
+
+          // Actually implementation detail so very fragile
+          johnsQuotes.on('data', (data) => {
+            counter++;
+            switch(counter) {
+              case 0:
+                expect(data).to.deep.equal([{ quote: 'get', author: 'John Doe' }]);
+                break;
+              case 3:
+                expect(data).to.deep.equal([
+                  { quote: 'get', author: 'John Doe' },
+                  { quote: 'get it done', author: 'John Doe' }
+                ]);
+                done();
+            }
+          })
+
+          johnsQuotes.read();
+          collection.add({ quote: 'get it done', author: 'John Doe' });
+        });
+      })
     });
-  })
+  });
+
+  describe('Collection as EventEmitter', () => {
+    it('emits data event after data read', (done) => {
+      collection.on('data', () => done());
+      collection.read();
+    });
+
+    it('adds data payload to data event', (done) => {
+      collection.on('data', (data) => {
+        expect(data).to.deep.equal(quotes);
+        done();
+      });
+      collection.read();
+    });
+
+    it('emits data event after data write', (done) => {
+      collection.on('data', (data) => {
+        expect(data).to.deep.equal(['somedata']);
+        done();
+      });
+      collection.write(['somedata']);
+    });
+  });
 });
