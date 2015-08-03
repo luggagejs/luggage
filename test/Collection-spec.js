@@ -175,7 +175,7 @@ describe('Collection', () => {
       });
 
       describe('Filterable as EventEmitter', () => {
-        it('emits data event after data read', (done) => {
+        it('emits data event after collection read', (done) => {
           var onlyQuotes = collection.where(filters.onlyQuotes);
 
           onlyQuotes.on('data', (data) => {
@@ -194,13 +194,14 @@ describe('Collection', () => {
           var counter = 0;
 
           // Actually implementation detail so very fragile
+          // We have one read on add
           johnsQuotes.on('data', (data) => {
             counter++;
             switch(counter) {
-              case 0:
+              case 1:
                 expect(data).to.deep.equal([{ quote: 'get', author: 'John Doe' }]);
                 break;
-              case 3:
+              case 2:
                 expect(data).to.deep.equal([
                   { quote: 'get', author: 'John Doe' },
                   { quote: 'get it done', author: 'John Doe' }
@@ -209,7 +210,6 @@ describe('Collection', () => {
             }
           })
 
-          johnsQuotes.read();
           collection.add({ quote: 'get it done', author: 'John Doe' });
         });
       })
@@ -217,7 +217,7 @@ describe('Collection', () => {
   });
 
   describe('Collection as EventEmitter', () => {
-    it('emits data event after data read', (done) => {
+    it('emits data event after collection read', (done) => {
       collection.on('data', () => done());
       collection.read();
     });
@@ -230,7 +230,7 @@ describe('Collection', () => {
       collection.read();
     });
 
-    it('emits data event after data write', (done) => {
+    it('emits data event after collection write', (done) => {
       collection.on('data', (data) => {
         expect(data).to.deep.equal(['somedata']);
         done();

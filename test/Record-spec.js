@@ -94,4 +94,41 @@ describe('Record', () => {
       }).catch(done);
     });
   });
+
+  describe('Record as EventEmitter', () => {
+    it('emits data event after record read', (done) => {
+      record.on('data', () => done());
+      record.read();
+    });
+
+    it('adds data payload to data event', (done) => {
+      record.on('data', (record) => {
+        expect(record).to.deep.equal({ quote: 'get', author: 'John Doe' });
+        done();
+      });
+
+      record.read();
+    });
+
+    it('emits data event after record update', (done) => {
+      var counter = 0;
+
+      // Actually implementation detail so very fragile
+      // We have two reads on update
+      record.on('data', (record) => {
+        counter++;
+        switch(counter) {
+          case 1:
+          case 2:
+            expect(record).to.deep.equal({ quote: 'get', author: 'John Doe' });
+            break;
+          case 3:
+            expect(record).to.deep.equal({ quote: 'get', author: 'John Doe', famous: true });
+            done();
+        }
+      })
+
+      record.update({ famous: true });
+    })
+  });
 });

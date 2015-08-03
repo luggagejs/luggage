@@ -1,3 +1,3 @@
 export default {
-  DATA_EVENT: 'data'
-}
+  DATA_EVENT: "data"
+};

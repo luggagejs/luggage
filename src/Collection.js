@@ -1,8 +1,8 @@
 /* global Dropbox */
 
 import equal from "deep-equal";
-import { EventEmitter } from "events";
-import { DATA_EVENT } from "./constants/events";
+import {EventEmitter} from "events";
+import {DATA_EVENT} from "./constants/events";
 import Filterable from "./traits/Filterable";
 import compose from "./lib/compose";
 
