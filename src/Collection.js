@@ -65,7 +65,7 @@ class Collection extends Filterable {
       .then(([recordIndex, record, data]) => {
         var newRecord = transform.call(null, Object.assign({}, record));
         data[recordIndex] = newRecord;
-        return Promise.all([newRecord, record, this.write(data)])
+        return Promise.all([newRecord, record, this.write(data)]);
       })
     );
   }
