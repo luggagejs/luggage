@@ -2,7 +2,7 @@
   "name": "luggage",
   "version": "0.0.1",
   "description": "Dropbox file API wrapper for storing json data.",
-  "main": "dist/Luggage.js",
+  "main": "lib/Luggage.js",
   "scripts": {
     "test": "mocha",
     "test-watch": "mocha --watch",
