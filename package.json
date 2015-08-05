@@ -1,5 +1,5 @@
 {
-  "name": "luggage.js",
+  "name": "luggage",
   "version": "0.0.1",
   "description": "Dropbox file API wrapper for storing json data.",
   "main": "index.js",
