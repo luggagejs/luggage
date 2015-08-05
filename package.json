@@ -2,12 +2,13 @@
   "name": "luggage",
   "version": "0.0.1",
   "description": "Dropbox file API wrapper for storing json data.",
-  "main": "index.js",
+  "main": "dist/Luggage.js",
   "scripts": {
     "test": "mocha",
     "test-watch": "mocha --watch",
-    "build": "babel ./src/Luggage.js --source-maps inline --out-file index.js",
-    "watch": "babel ./src/Luggage.js --watch --source-maps inline --out-file index.js",
+    "build": "babel --source-maps inline -d dist/ src/",
+    "watch": "babel --watch --source-maps inline -d dist/ src/",
+    "prepublish": "npm run build",
     "lint": "eslint src"
   },
   "author": "dra1n",
