@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import Dropbox from './support/Dummybox';
+import DropboxBackend from '../src/backends/DropboxBackend';
 import Record from '../src/Record';
 import Collection from '../src/Collection';
 
@@ -9,7 +10,7 @@ describe('Record', () => {
   var record, client, quotes;
 
   beforeEach(() => {
-    var collection;
+    var collection, backend;
 
     quotes = [
       { quote: 'hey' },
@@ -21,8 +22,9 @@ describe('Record', () => {
 
     client = new Dropbox.Client();
     client.files['quotes.json'] = JSON.stringify(quotes);
+    backend = new DropboxBackend(client);
 
-    collection = new Collection('quotes', client);
+    collection = new Collection('quotes', backend);
     record = collection.find({ quote: 'get' });
   });
 

@@ -1,13 +1,14 @@
 import { expect } from 'chai';
 
 import Dropbox from './support/Dummybox';
+import DropboxBackend from '../src/backends/DropboxBackend';
 import Collection from '../src/Collection';
 import Filterable from '../src/traits/Filterable';
 
 global.Dropbox = Dropbox;
 
 describe('Collection', () => {
-  var collection, client, quotes;
+  var collection, backend, quotes, client;
 
   beforeEach(() => {
     quotes = ['test quote'];
@@ -15,12 +16,14 @@ describe('Collection', () => {
     client = new Dropbox.Client();
     client.files['quotes.json'] = JSON.stringify(quotes);
 
-    collection = new Collection('quotes', client);
+    backend = new DropboxBackend(client);
+
+    collection = new Collection('quotes', backend);
   });
 
   describe('Collection#write', () => {
     it('writes empty collection', (done) => {
-      collection = new Collection('newcollection', client);
+      collection = new Collection('newcollection', backend);
 
       collection.write().then(() => {
         expect(client.files).to.have.property('newcollection.json')
@@ -38,7 +41,7 @@ describe('Collection', () => {
     });
 
     it('creates empty collection if not exists', (done) => {
-      collection = new Collection('nonexistent', client);
+      collection = new Collection('nonexistent', backend);
 
       collection.read().then((data) => {
         expect(data).to.deep.equal([]);
@@ -55,7 +58,7 @@ describe('Collection', () => {
     });
 
     it('adds new record to new collection', (done) => {
-      collection = new Collection('nonexistent', client);
+      collection = new Collection('nonexistent', backend);
 
       collection.add(newRecord).then(() => {
         var fileData = JSON.parse(client.files['nonexistent.json']);
@@ -100,7 +103,9 @@ describe('Collection', () => {
       client = new Dropbox.Client();
       client.files['quotes.json'] = JSON.stringify(quotes);
 
-      collection = new Collection('quotes', client)
+      backend = new DropboxBackend(client);
+
+      collection = new Collection('quotes', backend);
     });
 
     describe('Filterable#where', () => {
@@ -191,23 +196,12 @@ describe('Collection', () => {
             .where(filters.onlyQuotes)
             .and(filters.authorJohn);
 
-          var counter = 0;
-
-          // Actually implementation detail so very fragile
-          // We have one read on add
           johnsQuotes.on('data', (data) => {
-            counter++;
-            switch(counter) {
-              case 1:
-                expect(data).to.deep.equal([{ quote: 'get', author: 'John Doe' }]);
-                break;
-              case 2:
-                expect(data).to.deep.equal([
-                  { quote: 'get', author: 'John Doe' },
-                  { quote: 'get it done', author: 'John Doe' }
-                ]);
-                done();
-            }
+            expect(data).to.deep.equal([
+              { quote: 'get', author: 'John Doe' },
+              { quote: 'get it done', author: 'John Doe' }
+            ]);
+            done();
           })
 
           collection.add({ quote: 'get it done', author: 'John Doe' });

@@ -2,19 +2,20 @@ import { expect } from 'chai';
 import Dropbox from './support/Dummybox';
 
 import Luggage from '../src/Luggage';
+import DropboxBackend from '../src/backends/DropboxBackend';
 import Collection from '../src/Collection';
 
 global.Dropbox = Dropbox;
 
 describe('Luggage', () => {
-  var client, store;
+  var store;
 
   beforeEach(() => {
-    client = new Dropbox.Client({
+    var client = new Dropbox.Client({
       key: 'blah blah blah mr. Freeman'
     });
 
-    store = new Luggage(client);
+    store = new Luggage(new DropboxBackend(client));
   })
 
   describe('Luggage#collection', () => {

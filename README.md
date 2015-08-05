@@ -9,7 +9,8 @@ Dropbox file API wrapper for storing json data.
 
 ```
 var client = new Dropbox.Client({ key: DROPBOX_APP_KEY });
-var store = new Luggage(client);
+var backend = new DropboxBackend(client);
+var store = new Luggage(backend);
 var articles = store.collection('articles');
 
 /* Client needs to be authenticated before we make any data request */

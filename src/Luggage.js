@@ -1,11 +1,11 @@
 import Collection from "./Collection";
 
 export default class Luggage {
-  constructor(client) {
-    this.client = client;
+  constructor(backend) {
+    this.backend = backend;
   }
 
   collection(name) {
-    return new Collection(name);
+    return new Collection(name, this.backend);
   }
 }
