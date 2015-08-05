@@ -6,8 +6,8 @@
   "scripts": {
     "test": "mocha",
     "test-watch": "mocha --watch",
-    "build": "babel --source-maps inline -d dist/ src/",
-    "watch": "babel --watch --source-maps inline -d dist/ src/",
+    "build": "babel --source-maps inline --optional runtime -d dist/ src/",
+    "watch": "babel --watch --source-maps inline --optional runtime -d dist/ src/",
     "prepublish": "npm run build",
     "lint": "eslint src"
   },
