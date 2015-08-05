@@ -6,10 +6,13 @@
   "scripts": {
     "test": "mocha",
     "test-watch": "mocha --watch",
-    "build": "babel --source-maps inline --optional runtime -d dist/ src/",
-    "watch": "babel --watch --source-maps inline --optional runtime -d dist/ src/",
+    "build": "babel --source-maps inline --optional runtime -d lib/ src/",
+    "watch": "babel --watch --source-maps inline --optional runtime -d lib/ src/",
     "prepublish": "npm run build",
     "lint": "eslint src"
+  },
+  "directories": {
+    "lib" : "lib"
   },
   "author": "dra1n",
   "license": "ISC",
