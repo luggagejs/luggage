@@ -11,10 +11,6 @@
     "prepublish": "npm run build",
     "lint": "eslint src"
   },
-  "directories": {
-    "lib" : "dist",
-    "test" : "test"
-  },
   "author": "dra1n",
   "license": "ISC",
   "devDependencies": {
