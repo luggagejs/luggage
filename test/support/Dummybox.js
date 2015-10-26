@@ -20,7 +20,7 @@ class Client {
       if(name in this.files) {
         callback(null, this.files[name]);
       } else {
-        callback(Dummybox.ApiError.NOT_FOUND);
+        callback({ status: Dummybox.ApiError.NOT_FOUND });
       }
     })
   }

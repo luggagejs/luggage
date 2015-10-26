@@ -56,7 +56,7 @@ describe('Dummybox', () => {
 
       it('invokes callback with NOT_FOUND error if file not exists', (done) => {
         client.readFile('notexists.txt', (error) => {
-          expect(error).to.equal(Dummybox.ApiError.NOT_FOUND);
+          expect(error).to.deep.equal({status: Dummybox.ApiError.NOT_FOUND});
           done();
         })
       })

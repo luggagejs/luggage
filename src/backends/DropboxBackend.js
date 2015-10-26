@@ -15,16 +15,16 @@ class DropboxCollection {
   read() {
     return new Promise((resolve, reject) => {
       this.backend.readFile(this.fileName, (error, data) => {
-        switch (error) {
-          case undefined:
-          case null:
-            resolve(JSON.parse(data));
-            break;
-          case Dropbox.ApiError.NOT_FOUND:
-            resolve([]);
-            break;
-          default:
-            reject(error);
+        if (error) {
+          switch (error.status) {
+            case Dropbox.ApiError.NOT_FOUND:
+              resolve([]);
+              break;
+            default:
+              reject(error);
+          }
+        } else {
+          resolve(JSON.parse(data));
         }
       });
     });
