@@ -1,6 +1,6 @@
 {
   "name": "luggage",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Dropbox file API wrapper for storing json data.",
   "main": "lib/Luggage.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "lint": "eslint src"
   },
   "directories": {
-    "lib" : "lib"
+    "lib": "lib"
   },
   "author": "dra1n",
   "license": "ISC",
