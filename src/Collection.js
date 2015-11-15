@@ -59,7 +59,7 @@ class Collection extends Filterable {
       .then(([record, data]) => {
         var recordIndex = data.findIndex(r => equal(r, record));
         data.splice(recordIndex, 1);
-        return [record, this.write(data)];
+        return Promise.all([record, this.write(data)]);
       })
     );
   }
