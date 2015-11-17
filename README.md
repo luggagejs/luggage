@@ -7,7 +7,7 @@ Dropbox file API wrapper for storing json data.
 
 ### Usage
 
-```
+```js
 var client = new Dropbox.Client({ key: DROPBOX_APP_KEY });
 var backend = new DropboxBackend(client);
 var store = new Luggage(backend);
@@ -30,7 +30,7 @@ articles.on('data', (articles) => {
 
 ### Filtering
 
-```
+```js
 articles.where({ author: 'John Doe' }).read().then((articles) => {
   console.log('John\'s articles:', articles);
 });
@@ -55,7 +55,7 @@ articles.where({ author: 'John Doe' }).and(article => article.comments > 0)
 
 ### Finding single record
 
-```
+```js
 /* Collection#find returns the first record found */
 articles.find({ author: 'John Doe' }).read().then((article) => {
   console.log('John\'s article:', article);
@@ -74,7 +74,7 @@ articles.find({ author: 'John Doe' }).on('data', (article) => {
 
 ### Updating record
 
-```
+```js
 /* Simple merge with existing record */
 articles.find({ id: 1 }).update({ author: 'Jane Doe' }).then(([article]) => {
   console.log('Author changed:', article.author);
@@ -89,7 +89,7 @@ articles.find(article => article.id === 42).update((article) => {
 
 ### Adding new record
 
-```
+```js
 articles.add({ author: 'John Doe', body: 'Blah blah blah mr. Freeman' }).then(([article]) => {
   console.log('New article was added:', article);
 });
@@ -97,7 +97,7 @@ articles.add({ author: 'John Doe', body: 'Blah blah blah mr. Freeman' }).then(([
 
 ### Deleting record
 
-```
+```js
 articles.find({ id: 1 }).delete().then(([article]) => {
   console.log('No longer within collection:', article);
 });
