@@ -1,5 +1,5 @@
 import {EventEmitter} from "events";
-import {DATA_EVENT} from "../constants/events";
+import events from "../constants/events";
 import delegate from "../lib/delegate";
 import compose from "../lib/compose";
 import Record from "../Record";
@@ -36,7 +36,7 @@ class FilteredCollection extends Filterable {
     this.collection = collection;
     this.filter = filter;
 
-    this.collection.on(DATA_EVENT, this.dataChanged.bind(this));
+    this.collection.on(events.DATA_EVENT, this.dataChanged.bind(this));
 
     delegate(this, "updateRecord", this.collection);
     delegate(this, "deleteRecord", this.collection);
@@ -49,7 +49,7 @@ class FilteredCollection extends Filterable {
   }
 
   dataChanged(data) {
-    this.emit(DATA_EVENT, data.filter(this.filter));
+    this.emit(events.DATA_EVENT, data.filter(this.filter));
   }
 }
 

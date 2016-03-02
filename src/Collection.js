@@ -2,7 +2,7 @@
 
 import equal from "deep-equal";
 import {EventEmitter} from "events";
-import {DATA_EVENT} from "./constants/events";
+import events from "./constants/events";
 import Filterable from "./traits/Filterable";
 import compose from "./lib/compose";
 
@@ -24,7 +24,7 @@ class Collection extends Filterable {
   }
 
   dataChanged(data) {
-    this.emit(DATA_EVENT, data);
+    this.emit(events.DATA_EVENT, data);
     return data;
   }
 

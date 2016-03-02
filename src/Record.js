@@ -1,5 +1,5 @@
 import {EventEmitter} from "events";
-import {DATA_EVENT} from "./constants/events";
+import events from "./constants/events";
 import compose from "./lib/compose";
 
 function wrapTransform(transform) {
@@ -16,7 +16,7 @@ function wrapTransform(transform) {
 class Record {
   constructor(collection) {
     this.collection = collection;
-    this.collection.on(DATA_EVENT, this.dataChanged.bind(this));
+    this.collection.on(events.DATA_EVENT, this.dataChanged.bind(this));
   }
 
   read() {
@@ -34,7 +34,7 @@ class Record {
   }
 
   dataChanged(data) {
-    this.emit(DATA_EVENT, data[0]);
+    this.emit(events.DATA_EVENT, data[0]);
   }
 }
 
