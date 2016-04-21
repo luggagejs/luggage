@@ -26,6 +26,8 @@
         "no-shadow": [
             1
         ],
+        "no-use-before-define": [
+            1
         ]
     },
     "env": {
