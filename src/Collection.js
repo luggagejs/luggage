@@ -1,5 +1,3 @@
-/* global Dropbox */
-
 import equal from "deep-equal";
 import {EventEmitter} from "events";
 import events from "./constants/events";
