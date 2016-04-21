@@ -31,6 +31,7 @@
     "webpack": "^2.1.0-beta"
   },
   "dependencies": {
-    "deep-equal": "^1.0.0"
+    "deep-equal": "^1.0.0",
+    "dropbox-client": "^3.0.1"
   }
 }
