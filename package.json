@@ -28,7 +28,8 @@
     "eslint": "^0.24.1",
     "eslint-config-future": "^2.1.1",
     "eslint-plugin-react": "^2.7.1",
-    "mocha": "^2.2.5"
+    "mocha": "^2.2.5",
+    "webpack": "^2.1.0-beta"
   },
   "dependencies": {
     "deep-equal": "^1.0.0"
