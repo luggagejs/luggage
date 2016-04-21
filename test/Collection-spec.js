@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 
 import Dropbox from './support/Dummybox';
-import DropboxBackend from '../src/backends/DropboxBackend';
+import DropboxBackend from '../src/backends/DropboxV1Backend';
 import Collection from '../src/Collection';
 import Filterable from '../src/traits/Filterable';
 

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import Dropbox from './support/Dummybox';
 
 import Luggage from '../src/Luggage';
-import DropboxBackend from '../src/backends/DropboxBackend';
+import DropboxBackend from '../src/backends/DropboxV1Backend';
 import Collection from '../src/Collection';
 
 global.Dropbox = Dropbox;

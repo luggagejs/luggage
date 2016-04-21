@@ -43,7 +43,7 @@ class DropboxCollection {
   }
 }
 
-class DropboxBackend {
+class DropboxV1Backend {
   constructor(client) {
     this.client = client;
 
@@ -56,4 +56,4 @@ class DropboxBackend {
   }
 }
 
-export default DropboxBackend;
+export default DropboxV1Backend;
