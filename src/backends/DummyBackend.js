@@ -16,7 +16,7 @@ class DummyBackendCollection {
   }
 }
 
-class DummyBackend {
+export default class DummyBackend {
   collection(name) {
     return new DummyBackendCollection(name);
   }
