@@ -22,6 +22,10 @@
         "semi": [
             1,
             "always"
+        ],
+        "no-shadow": [
+            1
+        ],
         ]
     },
     "env": {
