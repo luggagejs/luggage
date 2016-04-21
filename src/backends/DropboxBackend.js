@@ -32,7 +32,7 @@ class DropboxCollection {
 
   write(data=[]) {
     return new Promise((resolve, reject) => {
-      this.backend.writeFile(this.fileName, JSON.stringify(data), (error, stat) => {
+      this.backend.writeFile(this.fileName, JSON.stringify(data), (error) => {
         if (error) {
           reject(error);
         } else {
