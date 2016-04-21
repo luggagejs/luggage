@@ -5,7 +5,7 @@ class DummyBackendCollection {
 
   read() {
     return new Promise((reject, resolve) => {
-      resolve(['dummy']);
+      resolve(["dummy"]);
     });
   }
 
