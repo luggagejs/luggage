@@ -8,10 +8,10 @@ Dropbox file API wrapper for storing json data.
 ### Usage
 
 ```js
-var client = new Dropbox.Client({ key: DROPBOX_APP_KEY });
-var backend = new DropboxBackend(client);
-var store = new Luggage(backend);
-var articles = store.collection('articles');
+const client = new Dropbox.Client({ key: DROPBOX_APP_KEY });
+const backend = new DropboxV1Backend(client);
+const store = new Luggage(backend);
+const articles = store.collection('articles');
 
 /* Client needs to be authenticated before we make any data request */
 client.authenticate({ interactive: false }, (error) => {
@@ -101,5 +101,12 @@ articles.add({ author: 'John Doe', body: 'Blah blah blah mr. Freeman' }).then(([
 articles.find({ id: 1 }).delete().then(([article]) => {
   console.log('No longer within collection:', article);
 });
+```
 
+### Dropbox API v2
+
+```js
+const backend = new DropboxBackend(token);
+const store = new Luggage(backend);
+const articles = store.collection('articles');
 ```
