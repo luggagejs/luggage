@@ -1,45 +1,65 @@
-import { download, putFile } from 'dropbox-client'
+import { download, putFile } from "dropbox-client";
 
 class DropboxCollection {
   constructor(name, backend) {
     this.name = name;
-    this.backend = backend;
+    this.token = backend.token;
   }
 
   get fileName() {
     return `${this.name}.json`;
   }
 
+  get filePath() {
+    return `/${this.fileName}`;
+  }
+
   read() {
-    // return new Promise((resolve, reject) => {
-    //   this.backend.readFile(this.fileName, (error, data) => {
-    //     if (error) {
-    //       switch (error.status) {
-    //         case Dropbox.ApiError.NOT_FOUND:
-    //           resolve([]);
-    //           break;
-    //         default:
-    //           reject(error);
-    //       }
-    //     } else {
-    //       resolve(JSON.parse(data));
-    //     }
-    //   });
-    // });
+    return download(this.token, { path: this.filePath })
 
+    .then(data => {
+      let partialContent = "";
+      const decoder = new TextDecoder();
+      const reader = data.content.getReader();
 
+      const read = () => {
+        return reader.read().then(result => {
+          if (!result.done) {
+            partialContent += decoder.decode(result.value, {
+              stream: true
+            });
+
+            return read();
+          } else {
+            return JSON.parse(partialContent);
+          }
+        });
+      };
+
+      return read();
+    })
+
+    .then(data => {
+      if (data.error) {
+        switch(data.error[".tag"]) {
+          case "path":
+            return [];
+          default:
+            throw data.error;
+        }
+      } else {
+        return data;
+      }
+    });
   }
 
   write(data=[]) {
-    // return new Promise((resolve, reject) => {
-    //   this.backend.writeFile(this.fileName, JSON.stringify(data), (error) => {
-    //     if (error) {
-    //       reject(error);
-    //     } else {
-    //       resolve(data);
-    //     }
-    //   });
-    // });
+    return putFile(
+      this.token,
+      JSON.stringify(data),
+      "text/plain; charset=dropbox-cors-hack",
+      {path: this.filePath}
+    ).then(() => data);
   }
 }
 
