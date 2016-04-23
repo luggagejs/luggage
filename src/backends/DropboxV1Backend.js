@@ -1,4 +1,6 @@
-import { getFile, putFile } from 'dropbox-client'
+/* global Dropbox */
+
+import delegate from "../lib/delegate";
 
 class DropboxCollection {
   constructor(name, backend) {
@@ -44,19 +46,13 @@ class DropboxCollection {
 class DropboxV1Backend {
   constructor(client) {
     this.client = client;
-  }
 
-  readFile(name, cb) {
-  }
-
-  writeFile(name, data, cb) {
+    delegate(this, "readFile", this.client);
+    delegate(this, "writeFile", this.client);
   }
 
   collection(name) {
     return new DropboxCollection(name, this);
-  }
-
-  getToken() {
   }
 }
 
