@@ -19,7 +19,7 @@ class DropboxCollection {
         const data = JSON.parse(request.responseText);
 
         if (data.error) {
-          if (data.error === "File not found") {
+          if (data.error[".tag"] === "path") {
             resolve([]);
           } else {
             reject(data.error);
