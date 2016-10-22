@@ -1,23 +1,15 @@
 import { expect } from 'chai';
 
-import Dropbox from './support/Dummybox';
-import DropboxBackend from '../src/backends/DropboxV1Backend';
+import DropboxBackend from '../src/backends/DummyBackend';
 import Collection from '../src/Collection';
 import Filterable from '../src/traits/Filterable';
 
-global.Dropbox = Dropbox;
-
 describe('Collection', () => {
-  var collection, backend, quotes, client;
+  var collection, backend, quotes;
 
   beforeEach(() => {
     quotes = ['test quote'];
-
-    client = new Dropbox.Client();
-    client.files['quotes.json'] = JSON.stringify(quotes);
-
-    backend = new DropboxBackend(client);
-
+    backend = new DropboxBackend('quotes', quotes);
     collection = new Collection('quotes', backend);
   });
 
@@ -25,8 +17,8 @@ describe('Collection', () => {
     it('writes empty collection', (done) => {
       collection = new Collection('newcollection', backend);
 
-      collection.write().then(() => {
-        expect(client.files).to.have.property('newcollection.json')
+      collection.write().then((data) => {
+        expect(data).to.deep.equal([]);
         done();
       }).catch(done);
     });
@@ -60,17 +52,15 @@ describe('Collection', () => {
     it('adds new record to new collection', (done) => {
       collection = new Collection('nonexistent', backend);
 
-      collection.add(newRecord).then(() => {
-        var fileData = JSON.parse(client.files['nonexistent.json']);
-        expect(fileData).to.include(newRecord);
+      collection.add(newRecord).then((data) => {
+        expect(data).to.include(newRecord);
         done();
       }).catch(done);
     });
 
     it('adds new record to existing collection', (done) => {
-      collection.add(newRecord).then(() => {
-        var fileData = JSON.parse(client.files['quotes.json']);
-        expect(fileData).to.include(newRecord);
+      collection.add(newRecord).then((data) => {
+        expect(data).to.include(newRecord);
         done();
       }).catch(done);
     });
@@ -100,11 +90,7 @@ describe('Collection', () => {
         { bla: 'blah blah blah mr. Freeman' },
       ];
 
-      client = new Dropbox.Client();
-      client.files['quotes.json'] = JSON.stringify(quotes);
-
-      backend = new DropboxBackend(client);
-
+      backend = new DropboxBackend('quotes', quotes);
       collection = new Collection('quotes', backend);
     });
 

@@ -1,23 +1,30 @@
 class DummyBackendCollection {
-  constructor(name) {
-    this.name = name;
+  constructor(data) {
+    this.data = data;
   }
 
   read() {
-    return new Promise((reject, resolve) => {
-      resolve(["dummy"]);
+    return new Promise((resolve, reject) => {
+      resolve(this.data);
     });
   }
 
   write(data) {
-    return new Promise((reject, resolve) => {
+    return new Promise((resolve, reject) => {
       resolve(data);
     });
   }
 }
 
 export default class DummyBackend {
+  constructor(name, data) {
+    this.collections = {
+      [name]: new DummyBackendCollection(data)
+    };
+  }
+
   collection(name) {
-    return new DummyBackendCollection(name);
+    return this.collections.hasOwnProperty(name) ?
+      this.collections[name] : new DummyBackendCollection([]);
   }
 }

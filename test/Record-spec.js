@@ -1,13 +1,10 @@
 import { expect } from 'chai';
-import Dropbox from './support/Dummybox';
-import DropboxBackend from '../src/backends/DropboxV1Backend';
+import DropboxBackend from '../src/backends/DummyBackend';
 import Record from '../src/Record';
 import Collection from '../src/Collection';
 
-global.Dropbox = Dropbox;
-
 describe('Record', () => {
-  var record, client, quotes;
+  var record, quotes;
 
   beforeEach(() => {
     var collection, backend;
@@ -20,9 +17,7 @@ describe('Record', () => {
       { bla: 'blah blah blah mr. Freeman' }
     ];
 
-    client = new Dropbox.Client();
-    client.files['quotes.json'] = JSON.stringify(quotes);
-    backend = new DropboxBackend(client);
+    backend = new DropboxBackend('quotes', quotes);
 
     collection = new Collection('quotes', backend);
     record = collection.find({ quote: 'get' });
@@ -49,7 +44,7 @@ describe('Record', () => {
 
     it('writes new data to json file', (done) => {
       updatePromise.then(() => {
-        var fileData = JSON.parse(client.files['quotes.json']);
+        var fileData = quotes;
         var fileRecord = fileData.find(({quote}) => quote === 'get it done');
 
         expect(fileRecord).to.deep.equal({ quote: 'get it done', author: 'John Doe' })
@@ -81,7 +76,7 @@ describe('Record', () => {
   describe("Record#delete", () => {
     it('writes new data to json file', (done) => {
       record.delete().then(() => {
-        var fileData = JSON.parse(client.files['quotes.json']);
+        var fileData = quotes;
 
         expect(fileData).to.not.include({ quote: 'get', author: 'John Doe' })
         done();
