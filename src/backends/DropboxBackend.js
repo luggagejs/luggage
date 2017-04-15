@@ -14,13 +14,13 @@ class DropboxCollection {
   }
 
   read() {
-    return client.filesDownload({ path: this.filePath })
+    return this.client.filesDownload({ path: this.filePath })
       .then(binaryToJson)
       .then(handleDropboxError);
   }
 
   write(data=[]) {
-    client.filesUpload({
+    this.client.filesUpload({
       contents: JSON.stringify(data),
       path: this.filePath
     }).then(() => data);
