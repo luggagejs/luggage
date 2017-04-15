@@ -5,7 +5,7 @@ class DropboxCollection {
   constructor(name, backend) {
     this.name = name;
     this.client = new Dropbox({
-      token: backend.token
+      accessToken: backend.token
     });
   }
 
