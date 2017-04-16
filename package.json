@@ -1,6 +1,6 @@
 {
   "name": "luggage",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Dropbox file API wrapper for storing json data.",
   "main": "lib/index.js",
   "scripts": {
