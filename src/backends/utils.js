@@ -1,23 +1,13 @@
 export const binaryToJson = data => {
-  let partialContent = "";
-  const decoder = new TextDecoder();
-  const reader = data.content.getReader();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
 
-  const read = () => {
-    return reader.read().then(result => {
-      if (!result.done) {
-        partialContent += decoder.decode(result.value, {
-          stream: true
-        });
+    reader.onload = e => {
+      resolve(JSON.parse(e.target.result));
+    };
 
-        return read();
-      } else {
-        return JSON.parse(partialContent);
-      }
-    });
-  };
-
-  return read();
+    reader.readAsText(data.fileBlob);
+  });
 };
 
 
