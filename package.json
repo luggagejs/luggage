@@ -8,7 +8,8 @@
     "test-watch": "mocha --watch",
     "build": "babel --source-maps inline --optional runtime -d lib/ src/",
     "watch": "babel --watch --source-maps inline --optional runtime -d lib/ src/",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
+    "prepublish": "npm run build && npm test",
     "lint": "eslint src"
   },
   "directories": {
