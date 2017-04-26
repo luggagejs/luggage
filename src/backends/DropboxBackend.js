@@ -14,15 +14,17 @@ class DropboxCollection {
   }
 
   read() {
-    return this.client.filesDownload({ path: this.filePath })
+    return this.client
+      .filesDownload({ path: this.filePath })
       .then(binaryToJson)
-      .then(handleDropboxError);
+      .catch(handleDropboxError);
   }
 
   write(data=[]) {
-    this.client.filesUpload({
+    return this.client.filesUpload({
       contents: JSON.stringify(data),
-      path: this.filePath
+      path: this.filePath,
+      mode: "overwrite"
     }).then(() => data);
   }
 }
