@@ -2,4 +2,3 @@ node_modules
 src/.DS_Store
 test/.DS_Store
 npm-debug.log
-/lib
