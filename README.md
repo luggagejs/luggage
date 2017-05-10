@@ -1,4 +1,5 @@
 # Luggage.js
+[![build status](https://img.shields.io/travis/luggagejs/luggage/master.svg?style=flat-square)](https://travis-ci.org/luggagejs/luggage)
 
 Dropbox file API wrapper for storing json data.
 
