@@ -63,7 +63,7 @@ class DropboxCollection {
       };
       request.open("POST", uploadApiPath);
       request.setRequestHeader("Authorization", `Bearer ${this.token}`);
-      request.setRequestHeader("Dropbox-API-Arg", JSON.stringify({ path: "/"+this.fileName }));
+      request.setRequestHeader("Dropbox-API-Arg", JSON.stringify({ path: "/"+this.fileName, mode: "overwrite" }));
       request.setRequestHeader("Content-Type", "text/plain; charset=dropbox-cors-hack");
       request.send(JSON.stringify(data));
     });
