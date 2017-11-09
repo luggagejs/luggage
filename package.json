@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "deep-equal": "^1.0.0",
-    "dropbox": "^2.5.2",
     "dropbox-client": "^3.0.1",
     "events": "^1.1.1"
   }
