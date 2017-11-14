@@ -1,6 +1,6 @@
 {
   "name": "luggage",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "description": "Dropbox file API wrapper for storing json data.",
   "main": "lib/index.js",
   "scripts": {
@@ -29,7 +29,7 @@
     "eslint": "^3.19.0",
     "eslint-plugin-react": "^6.10.3",
     "mocha": "^3.2.0",
-    "webpack": "^2.1.0-beta"
+    "webpack": "^2.7.0"
   },
   "dependencies": {
     "deep-equal": "^1.0.0",
