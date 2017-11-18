@@ -1,12 +1,22 @@
 export const binaryToJson = data => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+  return new Promise(resolve => {
+    const reader = data.content.getReader();
+    let result = new Uint8Array();
 
-    reader.onload = e => {
-      resolve(JSON.parse(e.target.result));
-    };
+    reader.read().then(function processText({ done, value }) {
+      if (done) {
+        const jsonString = new TextDecoder("utf-8").decode(result);
+        return resolve(JSON.parse(jsonString));
+      }
 
-    reader.readAsText(data.fileBlob);
+      const tmpValue = new Uint8Array(result.length + value.length);
+      tmpValue.set(result);
+      tmpValue.set(value, result.length);
+
+      result = tmpValue;
+
+      return reader.read().then(processText);
+    });
   });
 };
 
