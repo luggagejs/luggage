@@ -29,7 +29,7 @@ class Collection extends Filterable {
   add(newRecord) {
     return (
       this.backend.read()
-      .then((data) => {
+      .then(data => {
         data.push(newRecord)
         return Promise.all([newRecord, this.write(data)])
       })
@@ -41,7 +41,7 @@ class Collection extends Filterable {
       Promise.all([record.read(), this.read()])
       .then(([r, data]) => {
         const recordIndex = data.findIndex(rr => equal(rr, r))
-        return [recordIndex, record, data]
+        return [recordIndex, r, data]
       })
       .then(([recordIndex, r, data]) => {
         let newRecord = transform.call(null, Object.assign({}, r))

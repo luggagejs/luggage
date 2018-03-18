@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "clean-all": "rm -rf ./node_modules && rm -rf ./packages/*/node_modules ",
+    "clean-all": "rm -rf ./node_modules && rm -rf ./packages/*/node_modules && rm -rf ./packages/*/build",
     "jest-coverage": "yarn jest --coverage",
     "test": "jest",
     "lint": "eslint ."

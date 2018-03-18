@@ -2,4 +2,3 @@
 **/node_modules/**
 bin/
 packages/*/build/**
-packages/*/build-es5/**

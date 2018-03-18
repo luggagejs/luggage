@@ -5,7 +5,10 @@
   "main": "build/index.js",
   "scripts": {
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build": "babel --source-maps inline --optional runtime -d build/ src/",
+    "prepare": "yarn build",
+    "prepublish": "yarn build && yarn test"
   },
   "directories": {
     "lib": "lib",
