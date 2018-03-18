@@ -1,0 +1,17 @@
+.DS_STORE
+.eslintcache
+*.swp
+*~
+/examples/*/node_modules/
+
+/node_modules
+
+/packages/*/build/
+/packages/*/coverage/
+/packages/*/node_modules/
+
+coverage
+lerna-debug.log
+npm-debug.log
+npm-debug.log*
+yarn-error.log*
