@@ -14,6 +14,10 @@
     "lib": "lib",
     "browser": "browser"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "author": "dra1n",
   "license": "MIT",
   "dependencies": {
