@@ -7,8 +7,10 @@
     "test": "jest",
     "lint": "eslint .",
     "build": "babel --source-maps inline --optional runtime -d build/ src/",
-    "prepare": "yarn build",
-    "prepublish": "yarn build && yarn test"
+    "build-browser": "webpack",
+    "build": "babel --source-maps inline --optional runtime -d build/ src/",
+    "prepare": "yarn build && yarn build-browser",
+    "prepublish": "yarn build && yarn build-browser && yarn test"
   },
   "directories": {
     "lib": "lib",

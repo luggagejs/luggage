@@ -7,6 +7,7 @@
 /node_modules
 
 /packages/*/build/
+/packages/*/browser/
 /packages/*/coverage/
 /packages/*/node_modules/
 
