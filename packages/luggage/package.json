@@ -1,6 +1,6 @@
 {
   "name": "@luggage/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Dropbox file API wrapper for storing json data.",
   "main": "build/index.js",
   "scripts": {
@@ -8,7 +8,6 @@
     "lint": "eslint .",
     "build": "babel --source-maps inline --optional runtime -d build/ src/",
     "build-browser": "webpack",
-    "build": "babel --source-maps inline --optional runtime -d build/ src/",
     "prepare": "yarn build && yarn build-browser",
     "prepublish": "yarn build && yarn build-browser && yarn test"
   },
