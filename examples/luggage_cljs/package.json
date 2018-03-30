@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "deps": "yarn install",
+    "watch": "shadow-cljs watch app;",
+    "release": "shadow-cljs release app;",
+    "server": "shadow-cljs server;",
+    "clean": "rm -rf target; rm -rf public/js/compiled"
+  },
+  "dependencies": {
+    "@luggage/core": "*",
+    "shadow-cljs": "^2.0.80"
+  }
+}

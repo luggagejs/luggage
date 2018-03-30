@@ -11,6 +11,9 @@
 /packages/*/coverage/
 /packages/*/node_modules/
 
+/examples/*/public/js/compiled
+/examples/*/.shadow-cljs
+
 coverage
 lerna-debug.log
 npm-debug.log
