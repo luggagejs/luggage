@@ -12,7 +12,7 @@
     "prepublish": "yarn build && yarn build-browser && yarn test"
   },
   "directories": {
-    "lib": "lib",
+    "build": "build",
     "browser": "browser"
   },
   "publishConfig": {
