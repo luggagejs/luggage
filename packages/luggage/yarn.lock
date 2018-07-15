@@ -2,6 +2,17 @@
 # yarn lockfile v1
 
 
+base64-js@^1.0.2:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.3.0.tgz#cab1e6118f051095e58b5281aea8c1cd22bfc0e3"
+
+buffer@^5.0.8:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/buffer/-/buffer-5.1.0.tgz#c913e43678c7cb7c8bd16afbcddb6c5505e8f9fe"
+  dependencies:
+    base64-js "^1.0.2"
+    ieee754 "^1.1.4"
+
 byte-length@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/byte-length/-/byte-length-0.1.1.tgz#e9b4774dbce7c59764bf5be87c302789a88738c3"
@@ -17,6 +28,13 @@ dropbox-client@^3.0.1:
     http-client "^4.0.0"
     query-string "^3.0.1"
 
+dropbox@^4.0.7:
+  version "4.0.7"
+  resolved "https://registry.yarnpkg.com/dropbox/-/dropbox-4.0.7.tgz#68cd706e096b3d307ee7b8b3eb8af7c02a204413"
+  dependencies:
+    buffer "^5.0.8"
+    moment "^2.19.3"
+
 events@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/events/-/events-2.0.0.tgz#cbbb56bf3ab1ac18d71c43bb32c86255062769f2"
@@ -27,6 +45,14 @@ http-client@^4.0.0:
   dependencies:
     byte-length "^0.1.1"
     query-string "^4.1.0"
+
+ieee754@^1.1.4:
+  version "1.1.12"
+  resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.1.12.tgz#50bf24e5b9c8bb98af4964c941cdb0918da7b60b"
+
+moment@^2.19.3:
+  version "2.22.2"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.22.2.tgz#3c257f9839fc0e93ff53149632239eb90783ff66"
 
 object-assign@^4.1.0:
   version "4.1.1"

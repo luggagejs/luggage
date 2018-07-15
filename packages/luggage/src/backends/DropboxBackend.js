@@ -1,10 +1,12 @@
-import { download, putFile } from 'dropbox-client'
+import { Dropbox } from 'dropbox'
 import { binaryToJson, handleDropboxError, genericBackend } from './utils'
 
 class DropboxCollection {
   constructor(name, backend) {
     this.name = name
-    this.token = backend.token
+    this.client = new Dropbox({
+      accessToken: backend.token
+    })
   }
 
   get filePath() {
@@ -12,18 +14,18 @@ class DropboxCollection {
   }
 
   read() {
-    return download(this.token, { path: this.filePath })
+    return this.client
+      .filesDownload({ path: this.filePath })
       .then(binaryToJson)
-      .then(handleDropboxError)
+      .catch(handleDropboxError)
   }
 
   write(data = []) {
-    return putFile(
-      this.token,
-      JSON.stringify(data),
-      'text/plain; charset=dropbox-cors-hack',
-      {path: this.filePath}
-    ).then(() => data)
+    return this.client.filesUpload({
+      contents: JSON.stringify(data),
+      path: this.filePath,
+      mode: 'overwrite'
+    }).then(() => data)
   }
 }
 

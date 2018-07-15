@@ -4,7 +4,6 @@
   "description": "Binding to keep react-luggage and redux in sync",
   "main": "build/index.js",
   "scripts": {
-    "test": "jest",
     "lint": "eslint src",
     "build": "babel --source-maps inline --optional runtime -d build/ src/",
     "prepare": "yarn build",
