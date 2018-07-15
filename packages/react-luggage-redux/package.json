@@ -1,6 +1,6 @@
 {
   "name": "@luggage/react-luggage-redux",
-  "version": "1.0.6",
+  "version": "1.0.14",
   "description": "Binding to keep react-luggage and redux in sync",
   "main": "build/index.js",
   "scripts": {
@@ -35,7 +35,7 @@
     "@luggagejs/luggage": "1.0"
   },
   "dependencies": {
-    "lorgnette": "^1.2.0",
-    "@luggage/luggage-session": "^1.0.13"
+    "@luggage/luggage-session": "^1.0.13",
+    "lorgnette": "^1.2.0"
   }
 }
