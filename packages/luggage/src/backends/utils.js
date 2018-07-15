@@ -38,13 +38,13 @@ export const binaryToJson = data => {
 // https://github.com/dropbox/dropbox-sdk-js/issues/145
 export const handleSdkDropboxError = data => {
   if (data.error) {
-    const error = JSON.parse(data.error)
+    const message = JSON.parse(data.error)
 
-    switch(error['.tag']) {
+    switch(message.error['.tag']) {
     case 'path':
       return []
     default:
-      throw error
+      throw message.error
     }
   } else {
     return data
