@@ -1,6 +1,6 @@
 {
   "name": "@luggage/react-luggage-redux",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Binding to keep react-luggage and redux in sync",
   "main": "build/index.js",
   "scripts": {
