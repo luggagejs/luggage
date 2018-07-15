@@ -33,10 +33,9 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@luggagejs/luggage": "^1.0.2"
+    "@luggagejs/luggage": "1.0"
   },
   "dependencies": {
-    "dropbox": "^2.5.2",
     "lorgnette": "^1.2.0",
     "luggage-session": "luggagejs/luggage-session#0.1.3"
   }
