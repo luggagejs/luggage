@@ -1,0 +1,36 @@
+{
+  "name": "@luggage/react-luggage-redux",
+  "version": "1.0.2",
+  "description": "Binding to keep react-luggage and redux in sync",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint src",
+    "build": "babel --source-maps inline --optional runtime -d build/ src/",
+    "prepare": "yarn build",
+    "prepublish": "yarn build && yarn lint"
+  },
+  "keywords": [
+    "react",
+    "luggage",
+    "dropbox",
+    "redux"
+  ],
+  "author": "dra1n <dra1n86@gmail.com> (https://github.com/dra1n)",
+  "contributors": [
+    {
+      "name": "dra1n",
+      "url": "https://github.com/dra1n",
+      "email": "dra1n86@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@luggagejs/luggage": "^1.0.2"
+  },
+  "dependencies": {
+    "dropbox": "^2.5.2",
+    "lorgnette": "^1.2.0",
+    "luggage-session": "luggagejs/luggage-session#0.1.3"
+  }
+}
