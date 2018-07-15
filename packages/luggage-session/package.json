@@ -1,0 +1,43 @@
+{
+  "name": "luggage-session",
+  "version": "1.0.9",
+  "description": "Utils for obtaining and keeping dropbox authentication stuff in user session",
+  "main": "build/index.js",
+  "scripts": {
+    "test": "jest",
+    "test-watch": "jest --watch",
+    "build": "babel --source-maps inline --optional runtime -d build/ src/",
+    "watch": "babel --watch --source-maps inline --optional runtime -d build/ src/",
+    "prepare": "yarn run build",
+    "prepublish": "yarn run build && yarn test",
+    "lint": "eslint src"
+  },
+  "keywords": [
+    "react",
+    "luggage",
+    "dropbox"
+  ],
+  "author": "dra1n <dra1n86@gmail.com> (https://github.com/dra1n)",
+  "contributors": [
+    {
+      "name": "dra1n",
+      "url": "https://github.com/dra1n",
+      "email": "dra1n86@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "jest": {
+    "setupTestFrameworkScriptFile": "mock-local-storage"
+  },
+  "devDependencies": {
+    "jest": "^19.0.2",
+    "mock-local-storage": "^1.0.2",
+    "react": "^15"
+  },
+  "peerDependencies": {
+    "@luggage/core": "^1.0.9"
+  },
+  "dependencies": {
+    "dropbox": "^4.0.7"
+  }
+}
