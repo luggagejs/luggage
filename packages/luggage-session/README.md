@@ -1,5 +1,4 @@
 # Luggage session manager
-[![build status](https://img.shields.io/travis/luggagejs/luggage-session/master.svg?style=flat-square)](https://travis-ci.org/luggagejs/luggage-session)
 
 Utils for fetching and storing dropbox authentication token.
 
