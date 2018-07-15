@@ -10,6 +10,7 @@ export const sdkBinaryToJson = data => {
   })
 }
 
+
 export const binaryToJson = data => {
   return new Promise(resolve => {
     const reader = data.content.getReader()
@@ -32,6 +33,23 @@ export const binaryToJson = data => {
   })
 }
 
+
+// Error is a string but this may change
+// https://github.com/dropbox/dropbox-sdk-js/issues/145
+export const handleSdkDropboxError = data => {
+  if (data.error) {
+    const error = JSON.parse(data.error)
+
+    switch(error['.tag']) {
+    case 'path':
+      return []
+    default:
+      throw error
+    }
+  } else {
+    return data
+  }
+}
 
 export const handleDropboxError = data => {
   if (data.error) {

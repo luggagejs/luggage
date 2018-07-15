@@ -1,5 +1,5 @@
 import { Dropbox } from 'dropbox'
-import { sdkBinaryToJson, handleDropboxError, genericBackend } from './utils'
+import { sdkBinaryToJson, handleSdkDropboxError, genericBackend } from './utils'
 
 class DropboxCollection {
   constructor(name, backend) {
@@ -17,7 +17,7 @@ class DropboxCollection {
     return this.client
       .filesDownload({ path: this.filePath })
       .then(sdkBinaryToJson)
-      .catch(handleDropboxError)
+      .catch(handleSdkDropboxError)
   }
 
   write(data = []) {
