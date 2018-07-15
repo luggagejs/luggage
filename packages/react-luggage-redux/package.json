@@ -36,6 +36,6 @@
   },
   "dependencies": {
     "lorgnette": "^1.2.0",
-    "luggage-session": "luggagejs/luggage-session#0.1.3"
+    "@luggage/luggage-session": "^1.0.13"
   }
 }

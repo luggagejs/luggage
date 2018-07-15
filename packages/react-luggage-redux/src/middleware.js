@@ -1,5 +1,5 @@
 import Luggage, { DropboxBackend } from '@luggage/core'
-import LuggageSession from 'luggage-session'
+import LuggageSession from '@luggage/luggage-session'
 import { createHandler } from './utils'
 
 import {
