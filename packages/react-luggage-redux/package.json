@@ -16,6 +16,13 @@
     "dropbox",
     "redux"
   ],
+  "directories": {
+    "build": "build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "author": "dra1n <dra1n86@gmail.com> (https://github.com/dra1n)",
   "contributors": [
     {
