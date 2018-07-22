@@ -7,12 +7,16 @@ export const AUTHENTICATE_USER = '@@luggage/AUTHENTICATE_USER'
 export const ADD_RECORD = '@@luggage/ADD_RECORD'
 export const UPDATE_RECORD = '@@luggage/UPDATE_RECORD'
 export const DELETE_RECORD = '@@luggage/DELETE_RECORD'
+export const START_SYNCING = '@@luggage/START_SYNCING'
+export const FINISH_SYNCING = '@@luggage/FINISH_SYNCING'
 
 export const fetchCollection = createAction(FETCH_COLLECTION, 'name')
 export const authenticateUser = createAction(AUTHENTICATE_USER, 'afterAuthenticate')
 export const addRecord = createAction(ADD_RECORD, 'collectionName', 'recordData')
 export const updateRecord = createAction(UPDATE_RECORD, 'collectionName', 'recordId', 'transform')
 export const deleteRecord = createAction(DELETE_RECORD, 'collectionName', 'recordId')
+export const startSyncing = createAction(START_SYNCING)
+export const finishSyncing = createAction(FINISH_SYNCING)
 
 
 /* Middleware responses */

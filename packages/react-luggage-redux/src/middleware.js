@@ -13,7 +13,9 @@ import {
   updateCollectionSuccess,
   addRecordSuccess,
   updateRecordSuccess,
-  deleteRecordSuccess
+  deleteRecordSuccess,
+  startSyncing,
+  finishSyncing
 } from './actions'
 
 const luggageMiddleware = ({
@@ -30,8 +32,13 @@ const luggageMiddleware = ({
         let luggage = new Luggage(new Backend(user.token))
         let collection = luggage.collection(action.name)
 
+        dispatch(startSyncing())
+
         collection.read().then(data => {
           dispatch(updateCollectionSuccess(action.name, data, collection))
+          dispatch(finishSyncing())
+        }).catch(() => {
+          dispatch(finishSyncing())
         })
       } else {
         dispatch(authenticateUser(action))
@@ -54,10 +61,14 @@ const luggageMiddleware = ({
       const collection = getState().luggage.meta.collections[collectionName]
 
       if (collection) {
+        dispatch(startSyncing())
         collection.add(recordData)
           .then(([newRecord, newCollection]) => {
+            dispatch(finishSyncing())
             dispatch(addRecordSuccess(collectionName, newRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
+          }).catch(() => {
+            dispatch(finishSyncing())
           })
       }
     },
@@ -68,10 +79,14 @@ const luggageMiddleware = ({
       const record = collection.find(recordId)
 
       if (collection) {
+        dispatch(startSyncing())
         collection.updateRecord(record, transform)
           .then(([newRecord, oldRecord, newCollection]) => {
+            dispatch(finishSyncing())
             dispatch(updateRecordSuccess(collectionName, newRecord, oldRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
+          }).catch(() => {
+            dispatch(finishSyncing())
           })
       }
     },
@@ -82,10 +97,14 @@ const luggageMiddleware = ({
       const record = collection.find(recordId)
 
       if (collection) {
+        dispatch(startSyncing())
         collection.deleteRecord(record)
           .then(([deletedRecord, newCollection]) => {
+            dispatch(finishSyncing())
             dispatch(deleteRecordSuccess(collectionName, deletedRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
+          }).catch(() => {
+            dispatch(finishSyncing())
           })
       }
     }
