@@ -31,9 +31,9 @@ const luggageReducer = (state = initialState, action) => {
   case actions.UPDATE_COLLECTION_SUCCESS:
     return collectionsLens(action.collectionName).set(state, action.data, action.collection)
   case actions.START_SYNCING:
-    return syncingLens(actions.source).set(state, true)
+    return syncingLens(action.source).set(state, true)
   case actions.FINISH_SYNCING:
-    return syncingLens(actions.source).set(state, false)
+    return syncingLens(action.source).set(state, false)
   default:
     return state
   }
