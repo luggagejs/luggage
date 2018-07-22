@@ -64,9 +64,9 @@ const luggageMiddleware = ({
         dispatch(startSyncing())
         collection.add(recordData)
           .then(([newRecord, newCollection]) => {
-            dispatch(finishSyncing())
             dispatch(addRecordSuccess(collectionName, newRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
+            dispatch(finishSyncing())
           }).catch(() => {
             dispatch(finishSyncing())
           })
@@ -82,9 +82,9 @@ const luggageMiddleware = ({
         dispatch(startSyncing())
         collection.updateRecord(record, transform)
           .then(([newRecord, oldRecord, newCollection]) => {
-            dispatch(finishSyncing())
             dispatch(updateRecordSuccess(collectionName, newRecord, oldRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
+            dispatch(finishSyncing())
           }).catch(() => {
             dispatch(finishSyncing())
           })
@@ -100,9 +100,9 @@ const luggageMiddleware = ({
         dispatch(startSyncing())
         collection.deleteRecord(record)
           .then(([deletedRecord, newCollection]) => {
-            dispatch(finishSyncing())
             dispatch(deleteRecordSuccess(collectionName, deletedRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
+            dispatch(finishSyncing())
           }).catch(() => {
             dispatch(finishSyncing())
           })
