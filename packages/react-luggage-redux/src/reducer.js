@@ -8,12 +8,17 @@ const initialState = {
   },
   meta: {
     collections: {},
-    syncing: false
+    syncing: {
+      [actions.FETCH_COLLECTION]: false,
+      [actions.ADD_RECORD]: false,
+      [actions.UPDATE_RECORD]: false,
+      [actions.DELETE_RECORD]: false
+    }
   }
 }
 
 const userLens = lens.prop('user')
-const syncingLens = lens.prop('meta').prop('syncing')
+const syncingLens = source => lens.prop('meta').prop('syncing').prop(source)
 const collectionsLens = name => multi(
   lens.prop('collections').prop(name, []),
   lens.prop('meta').prop('collections').prop(name)
@@ -26,9 +31,9 @@ const luggageReducer = (state = initialState, action) => {
   case actions.UPDATE_COLLECTION_SUCCESS:
     return collectionsLens(action.collectionName).set(state, action.data, action.collection)
   case actions.START_SYNCING:
-    return syncingLens.set(state, true)
+    return syncingLens(actions.source).set(state, true)
   case actions.FINISH_SYNCING:
-    return syncingLens.set(state, false)
+    return syncingLens(actions.source).set(state, false)
   default:
     return state
   }

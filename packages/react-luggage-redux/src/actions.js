@@ -15,8 +15,8 @@ export const authenticateUser = createAction(AUTHENTICATE_USER, 'afterAuthentica
 export const addRecord = createAction(ADD_RECORD, 'collectionName', 'recordData')
 export const updateRecord = createAction(UPDATE_RECORD, 'collectionName', 'recordId', 'transform')
 export const deleteRecord = createAction(DELETE_RECORD, 'collectionName', 'recordId')
-export const startSyncing = createAction(START_SYNCING)
-export const finishSyncing = createAction(FINISH_SYNCING)
+export const startSyncing = createAction(START_SYNCING, 'source')
+export const finishSyncing = createAction(FINISH_SYNCING, 'source')
 
 
 /* Middleware responses */

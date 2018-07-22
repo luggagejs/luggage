@@ -32,13 +32,13 @@ const luggageMiddleware = ({
         let luggage = new Luggage(new Backend(user.token))
         let collection = luggage.collection(action.name)
 
-        dispatch(startSyncing())
+        dispatch(startSyncing(FETCH_COLLECTION))
 
         collection.read().then(data => {
           dispatch(updateCollectionSuccess(action.name, data, collection))
-          dispatch(finishSyncing())
+          dispatch(finishSyncing(FETCH_COLLECTION))
         }).catch(() => {
-          dispatch(finishSyncing())
+          dispatch(finishSyncing(FETCH_COLLECTION))
         })
       } else {
         dispatch(authenticateUser(action))
@@ -61,14 +61,14 @@ const luggageMiddleware = ({
       const collection = getState().luggage.meta.collections[collectionName]
 
       if (collection) {
-        dispatch(startSyncing())
+        dispatch(startSyncing(ADD_RECORD))
         collection.add(recordData)
           .then(([newRecord, newCollection]) => {
             dispatch(addRecordSuccess(collectionName, newRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
-            dispatch(finishSyncing())
+            dispatch(finishSyncing(ADD_RECORD))
           }).catch(() => {
-            dispatch(finishSyncing())
+            dispatch(finishSyncing(ADD_RECORD))
           })
       }
     },
@@ -79,14 +79,14 @@ const luggageMiddleware = ({
       const record = collection.find(recordId)
 
       if (collection) {
-        dispatch(startSyncing())
+        dispatch(startSyncing(UPDATE_RECORD))
         collection.updateRecord(record, transform)
           .then(([newRecord, oldRecord, newCollection]) => {
             dispatch(updateRecordSuccess(collectionName, newRecord, oldRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
-            dispatch(finishSyncing())
+            dispatch(finishSyncing(UPDATE_RECORD))
           }).catch(() => {
-            dispatch(finishSyncing())
+            dispatch(finishSyncing(UPDATE_RECORD))
           })
       }
     },
@@ -97,14 +97,14 @@ const luggageMiddleware = ({
       const record = collection.find(recordId)
 
       if (collection) {
-        dispatch(startSyncing())
+        dispatch(startSyncing(DELETE_RECORD))
         collection.deleteRecord(record)
           .then(([deletedRecord, newCollection]) => {
             dispatch(deleteRecordSuccess(collectionName, deletedRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
-            dispatch(finishSyncing())
+            dispatch(finishSyncing(DELETE_RECORD))
           }).catch(() => {
-            dispatch(finishSyncing())
+            dispatch(finishSyncing(DELETE_RECORD))
           })
       }
     }
