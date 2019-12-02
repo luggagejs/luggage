@@ -25,6 +25,11 @@
     "deep-equal": "^1.0.0",
     "dropbox": "^4.0.7",
     "dropbox-client": "^3.0.1",
-    "events": "^2.0.0"
+    "events": "^2.0.0",
+    "lorgnette": "^1.2.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.2",
+    "jest": "^22.4.2"
   }
 }
