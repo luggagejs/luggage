@@ -36,13 +36,13 @@ export const binaryToJson = data => {
 
 // Error is a string but this may change
 // https://github.com/dropbox/dropbox-sdk-js/issues/145
-export const handleSdkDropboxError = data => {
+const handleSdkDropboxErrorWith = defaultValue => data => {
   if (data.error) {
     const message = JSON.parse(data.error)
 
     switch(message.error['.tag']) {
     case 'path':
-      return []
+      return defaultValue
     default:
       throw message.error
     }
@@ -50,6 +50,11 @@ export const handleSdkDropboxError = data => {
     return data
   }
 }
+
+
+export const handleSdkDropboxError = handleSdkDropboxErrorWith([])
+export const handleMetaSdkDropboxError = handleSdkDropboxErrorWith({})
+
 
 export const handleDropboxError = data => {
   if (data.error) {
@@ -65,7 +70,7 @@ export const handleDropboxError = data => {
 }
 
 
-export const genericBackend = Collection => {
+export const genericBackend = (Collection, Collections) => {
   class DropboxBackend {
     constructor(token) {
       this.token = token
@@ -73,6 +78,10 @@ export const genericBackend = Collection => {
 
     collection(name) {
       return new Collection(name, this)
+    }
+
+    collections(name) {
+      return new Collections(name, this)
     }
   }
 

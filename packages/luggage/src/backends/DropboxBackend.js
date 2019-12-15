@@ -1,5 +1,10 @@
 import { Dropbox } from 'dropbox'
-import { sdkBinaryToJson, handleSdkDropboxError, genericBackend } from './utils'
+import {
+  sdkBinaryToJson,
+  handleSdkDropboxError,
+  handleMetaSdkDropboxError,
+  genericBackend
+} from './utils'
 
 class DropboxCollection {
   constructor(name, backend) {
@@ -27,6 +32,40 @@ class DropboxCollection {
       mode: 'overwrite'
     }).then(() => data)
   }
+
+  delete() {
+    return this.client.filesDelete({
+      path: this.filePath
+    })
+  }
 }
 
-export default genericBackend(DropboxCollection)
+class DropboxCollections {
+  constructor(name, backend) {
+    this.name = name
+    this.client = new Dropbox({
+      accessToken: backend.token
+    })
+  }
+
+  get metaFilePath() {
+    return `/${this.name}/.meta.json`
+  }
+
+  readMetaInfo = () => {
+    return this.client
+      .filesDownload({ path: this.metaFilePath })
+      .then(sdkBinaryToJson)
+      .catch(handleMetaSdkDropboxError)
+  }
+
+  writeMetaInfo = data => {
+    return this.client.filesUpload({
+      contents: JSON.stringify(data),
+      path: this.metaFilePath,
+      mode: 'overwrite'
+    }).then(() => data)
+  }
+}
+
+export default genericBackend(DropboxCollection, DropboxCollections)
