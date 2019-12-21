@@ -1,6 +1,6 @@
 {
   "name": "@luggage/luggage-session",
-  "version": "1.0.15",
+  "version": "2.0.0",
   "description": "Utils for obtaining and keeping dropbox authentication stuff in user session",
   "main": "build/index.js",
   "scripts": {
