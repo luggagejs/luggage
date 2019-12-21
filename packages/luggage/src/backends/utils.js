@@ -51,7 +51,7 @@ export const writeXMLHttp = ({ data, path, token, apiPath }) => {
     request.open('POST', apiPath)
     request.setRequestHeader('Authorization', `Bearer ${token}`)
     request.setRequestHeader('Dropbox-API-Arg', JSON.stringify({ path, mode: 'overwrite' }))
-    request.setRequestHeader('Content-Type', 'text/plain; charset=dropbox-cors-hack')
+    request.setRequestHeader('Content-Type', 'application/octet-stream')
     request.send(JSON.stringify(data))
   })
 }
