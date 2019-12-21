@@ -1,3 +1,87 @@
+export const readXMLHttp = ({ path, token, apiPath }) => {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest()
+
+    request.onload = () => {
+      const data = JSON.parse(request.responseText)
+
+      if (data.error) {
+        if (data.error['.tag'] === 'path') {
+          resolve([])
+        } else {
+          reject(data.error)
+        }
+      } else {
+        resolve(data)
+      }
+    }
+
+    request.ontimeout = () => {
+      reject(request.responseText)
+    }
+    request.onerror = () => {
+      reject(request.responseText)
+    }
+    request.open('POST', apiPath)
+    request.setRequestHeader('Authorization', `Bearer ${token}`)
+    request.setRequestHeader('Dropbox-API-Arg', JSON.stringify({ path }))
+    request.send()
+  })
+}
+
+export const writeXMLHttp = ({ data, path, token, apiPath }) => {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest()
+
+    request.onload = () => {
+      const response = request.responseText
+      if (response.error) {
+        reject(response.error)
+      } else {
+        resolve(data)
+      }
+    }
+
+    request.ontimeout = () => {
+      reject(request.responseText)
+    }
+    request.onerror = () => {
+      reject(request.responseText)
+    }
+    request.open('POST', apiPath)
+    request.setRequestHeader('Authorization', `Bearer ${token}`)
+    request.setRequestHeader('Dropbox-API-Arg', JSON.stringify({ path, mode: 'overwrite' }))
+    request.setRequestHeader('Content-Type', 'text/plain; charset=dropbox-cors-hack')
+    request.send(JSON.stringify(data))
+  })
+}
+
+export const deleteXMLHttp = ({ path, token, apiPath }) => {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest()
+
+    request.onload = () => {
+      const response = request.responseText
+      if (response.error) {
+        reject(response.error)
+      } else {
+        resolve(response)
+      }
+    }
+
+    request.ontimeout = () => {
+      reject(request.responseText)
+    }
+    request.onerror = () => {
+      reject(request.responseText)
+    }
+    request.open('POST', apiPath)
+    request.setRequestHeader('Authorization', `Bearer ${token}`)
+    request.setRequestHeader('Dropbox-API-Arg', JSON.stringify({ path }))
+    request.send()
+  })
+}
+
 export const sdkBinaryToJson = data => {
   return new Promise(resolve => {
     const reader = new FileReader()

@@ -1,5 +1,8 @@
+import { readXMLHttp, writeXMLHttp, deleteXMLHttp } from './utils'
+
 const downloadApiPath = 'https://content.dropboxapi.com/2/files/download'
 const uploadApiPath = 'https://content.dropboxapi.com/2/files/upload'
+const deleteApiPath = 'https://api.dropboxapi.com/2/file_requests/delete'
 
 class DropboxCollection {
   constructor(name, backend) {
@@ -7,65 +10,60 @@ class DropboxCollection {
     this.token = backend.token
   }
 
-  get fileName() {
-    return `${this.name}.json`
+  get filePath() {
+    return `/${this.name}.json`
   }
 
   read() {
-    return new Promise((resolve, reject) => {
-      let request = new XMLHttpRequest()
-
-      request.onload = () => {
-        const data = JSON.parse(request.responseText)
-
-        if (data.error) {
-          if (data.error['.tag'] === 'path') {
-            resolve([])
-          } else {
-            reject(data.error)
-          }
-        } else {
-          resolve(data)
-        }
-      }
-
-      request.ontimeout = () => {
-        reject(request.responseText)
-      }
-      request.onerror = () => {
-        reject(request.responseText)
-      }
-      request.open('POST', downloadApiPath)
-      request.setRequestHeader('Authorization', `Bearer ${this.token}`)
-      request.setRequestHeader('Dropbox-API-Arg', JSON.stringify({ path: '/' + this.fileName }))
-      request.send()
+    return readXMLHttp({
+      apiPath: downloadApiPath,
+      token: this.token,
+      path: this.filePath
     })
   }
 
   write(data = []) {
-    return new Promise((resolve, reject) => {
-      let request = new XMLHttpRequest()
+    return writeXMLHttp({
+      data,
+      apiPath: uploadApiPath,
+      token: this.token,
+      path: this.filePath
+    })
+  }
 
-      request.onload = () => {
-        const response = request.responseText
-        if (response.error) {
-          reject(response.error)
-        } else {
-          resolve(data)
-        }
-      }
+  delete() {
+    return deleteXMLHttp({
+      apiPath: deleteApiPath,
+      token: this.token,
+      path: this.filePath
+    })
+  }
+}
 
-      request.ontimeout = () => {
-        reject(request.responseText)
-      }
-      request.onerror = () => {
-        reject(request.responseText)
-      }
-      request.open('POST', uploadApiPath)
-      request.setRequestHeader('Authorization', `Bearer ${this.token}`)
-      request.setRequestHeader('Dropbox-API-Arg', JSON.stringify({ path: '/' + this.fileName, mode: 'overwrite' }))
-      request.setRequestHeader('Content-Type', 'text/plain; charset=dropbox-cors-hack')
-      request.send(JSON.stringify(data))
+class DropboxCollections {
+  constructor(name, backend) {
+    this.name = name
+    this.token = backend.token
+  }
+
+  get metaFilePath() {
+    return `/${this.name}/.meta.json`
+  }
+
+  readMetaInfo = () => {
+    return readXMLHttp({
+      apiPath: downloadApiPath,
+      token: this.token,
+      path: this.metaFilePath
+    })
+  }
+
+  writeMetaInfo = data => {
+    return writeXMLHttp({
+      data,
+      apiPath: uploadApiPath,
+      token: this.token,
+      path: this.metaFilePath
     })
   }
 }
@@ -77,6 +75,10 @@ class DropboxBackend {
 
   collection(name) {
     return new DropboxCollection(name, this)
+  }
+
+  collections(name) {
+    return new DropboxCollections(name, this)
   }
 }
 

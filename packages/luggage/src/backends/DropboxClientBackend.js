@@ -25,6 +25,36 @@ class DropboxCollection {
       {path: this.filePath, mode: 'overwrite'}
     ).then(() => data)
   }
+
+  delete() {
+    return Promise.resolve({ success: false})
+  }
 }
 
-export default genericBackend(DropboxCollection)
+class DropboxCollections {
+  constructor(name, backend) {
+    this.name = name
+    this.token = backend.token
+  }
+
+  get metaFilePath() {
+    return `/${this.name}/.meta.json`
+  }
+
+  readMetaInfo = () => {
+    return download(this.token, { path: this.metaFilePath })
+      .then(binaryToJson)
+      .then(handleDropboxError)
+  }
+
+  writeMetaInfo = data => {
+    return putFile(
+      this.token,
+      JSON.stringify(data),
+      'text/plain; charset=dropbox-cors-hack',
+      {path: this.metaFilePath, mode: 'overwrite'}
+    ).then(() => data)
+  }
+}
+
+export default genericBackend(DropboxCollection, DropboxCollections)
