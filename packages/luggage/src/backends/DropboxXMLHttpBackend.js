@@ -2,7 +2,7 @@ import { readXMLHttp, writeXMLHttp, deleteXMLHttp } from './utils'
 
 const downloadApiPath = 'https://content.dropboxapi.com/2/files/download'
 const uploadApiPath = 'https://content.dropboxapi.com/2/files/upload'
-const deleteApiPath = 'https://api.dropboxapi.com/2/file_requests/delete'
+const deleteApiPath = 'https://api.dropboxapi.com/2/files/delete_v2'
 
 class DropboxCollection {
   constructor(name, backend) {

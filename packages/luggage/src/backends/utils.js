@@ -77,8 +77,8 @@ export const deleteXMLHttp = ({ path, token, apiPath }) => {
     }
     request.open('POST', apiPath)
     request.setRequestHeader('Authorization', `Bearer ${token}`)
-    request.setRequestHeader('Dropbox-API-Arg', JSON.stringify({ path }))
-    request.send()
+    request.setRequestHeader('Content-Type', 'application/json')
+    request.send(JSON.stringify({ path }))
   })
 }
 
