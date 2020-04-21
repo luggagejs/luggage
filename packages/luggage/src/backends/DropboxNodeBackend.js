@@ -1,5 +1,40 @@
-import { readXMLHttp, writeXMLHttp, deleteXMLHttp } from './utils'
+import fetch from 'node-fetch'
 import { downloadApiPath, uploadApiPath, deleteApiPath } from './constants'
+import { handleDropboxError, handleMetaDropboxError } from './utils'
+
+const readWithFetch = ({ path, token, apiPath }) => (
+  fetch(apiPath, {
+    method: 'post',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Dropbox-API-Arg': JSON.stringify({ path })
+    }
+  })
+    .then(r => r.json())
+)
+
+const writeWithFetch = ({ data, path, token, apiPath }) => (
+  fetch(apiPath, {
+    method: 'post',
+    body: JSON.stringify(data),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Dropbox-API-Arg': JSON.stringify({ path }),
+      'Content-Type': 'application/octet-stream'
+    }
+  }).then(() => data)
+)
+
+const deleteWithFetch = ({ path, token, apiPath }) => (
+  fetch(apiPath, {
+    method: 'post',
+    body: JSON.stringify({ path }),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  })
+)
 
 class DropboxCollection {
   constructor(name, backend) {
@@ -12,15 +47,15 @@ class DropboxCollection {
   }
 
   read() {
-    return readXMLHttp({
+    return readWithFetch({
       apiPath: downloadApiPath,
       token: this.token,
       path: this.filePath
-    })
+    }).then(handleDropboxError)
   }
 
   write(data = []) {
-    return writeXMLHttp({
+    return writeWithFetch({
       data,
       apiPath: uploadApiPath,
       token: this.token,
@@ -29,7 +64,7 @@ class DropboxCollection {
   }
 
   delete() {
-    return deleteXMLHttp({
+    return deleteWithFetch({
       apiPath: deleteApiPath,
       token: this.token,
       path: this.filePath
@@ -48,15 +83,15 @@ class DropboxCollections {
   }
 
   readMetaInfo = () => {
-    return readXMLHttp({
+    return readWithFetch({
       apiPath: downloadApiPath,
       token: this.token,
       path: this.metaFilePath
-    })
+    }).then(handleMetaDropboxError)
   }
 
   writeMetaInfo = data => {
-    return writeXMLHttp({
+    return writeWithFetch({
       data,
       apiPath: uploadApiPath,
       token: this.token,

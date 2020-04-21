@@ -140,11 +140,11 @@ export const handleSdkDropboxError = handleSdkDropboxErrorWith([])
 export const handleMetaSdkDropboxError = handleSdkDropboxErrorWith({})
 
 
-export const handleDropboxError = data => {
+const handleDropboxErrorWith = defaultValue => data => {
   if (data.error) {
     switch(data.error['.tag']) {
     case 'path':
-      return []
+      return defaultValue
     default:
       throw data.error
     }
@@ -152,6 +152,10 @@ export const handleDropboxError = data => {
     return data
   }
 }
+
+
+export const handleDropboxError = handleDropboxErrorWith([])
+export const handleMetaDropboxError = handleDropboxErrorWith({})
 
 
 export const genericBackend = (Collection, Collections) => {

@@ -27,7 +27,8 @@
     "dropbox": "^4.0.7",
     "dropbox-client": "^3.0.1",
     "events": "^2.0.0",
-    "lorgnette": "^1.2.0"
+    "lorgnette": "^1.2.0",
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.2",
