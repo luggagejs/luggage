@@ -1,7 +1,7 @@
 # luggage
 [![build status](https://img.shields.io/travis/luggagejs/luggage/master.svg?style=flat-square)](https://travis-ci.org/luggagejs/luggage)
 
-Dropbox file API wrapper for storing json data.
+Dropbox and Google Drive file API wrapper for storing json data.
 
 > Have you ever noticed that their stuff is shit and your shit is stuff?
 (George Carlin)
