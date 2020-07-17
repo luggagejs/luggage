@@ -4,3 +4,4 @@ export { default as DropboxXMLHttpBackend } from './backends/DropboxXMLHttpBacke
 export { default as DropboxBackend } from './backends/DropboxBackend'
 export { default as DropboxClientBackend } from './backends/DropboxClientBackend'
 export { default as DummyBackend } from './backends/DummyBackend'
+export { default as GoogleDriveBackend } from './backends/GoogleDriveBackend'
