@@ -93,23 +93,22 @@ class GoogleDriveCollections {
 
   readMetaInfo = () => {
     return findOrCreateFolder(this.gapi, this.config.folderName)
-      .then(({ id }) => findOrCreateFolderWithParent(this.gapi, this.metaFolderName, id)
-        .then(({ id }) => fileIdByNameAndParent(this.gapi, this.metaFileName, id)
-          .then(fileId => (
-            fileId
-              ? this.gapi.client.drive.files
-                .get({ fileId, alt: 'media' })
-                .then(({ result }) => result)
-                .catch(error => {
-                  if (error.body && JSON.parse(error.body).error.errors[0].reason === 'notFound') {
-                    return {}
-                  }
+      .then(({ id }) => findOrCreateFolderWithParent(this.gapi, this.metaFolderName, id))
+      .then(({ id }) => fileIdByNameAndParent(this.gapi, this.metaFileName, id))
+      .then(fileId => (
+        fileId
+          ? this.gapi.client.drive.files
+            .get({ fileId, alt: 'media' })
+            .then(({ result }) => result)
+            .catch(error => {
+              if (error.body && JSON.parse(error.body).error.errors[0].reason === 'notFound') {
+                return {}
+              }
 
-                  throw error
-                })
-              : {}
-          ))
-        ))
+              throw error
+            })
+          : {}
+      ))
   }
 
   writeMetaInfo = data => {
