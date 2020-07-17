@@ -1316,9 +1316,9 @@
     chalk "^3.0.0"
 
 "@luggage/core@*":
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/@luggage/core/-/core-2.2.1.tgz#304281afeb17867861f38357f0439975ada1b4b0"
-  integrity sha512-Kj25tVDLPJDX69w7LMsJbRwVkRIjV7oymHcLvF+CscA3pVw6u/frG+rK8MRt6uB/I9kwxyT0xerOtryXl7gTeQ==
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@luggage/core/-/core-2.2.2.tgz#deab2ef175aa7f272a6bc98167ec8c28589479e2"
+  integrity sha512-TIHoC1djS0meCLBW/cisaPtiHhpLP9SKKbHFV648yc11G3PPxukE0hdsX5oq4eo5CuuXUNIxk55MeRJUaH4/0w==
   dependencies:
     deep-equal "^1.0.0"
     dropbox "^4.0.7"
