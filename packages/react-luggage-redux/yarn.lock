@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@luggage/luggage-session@^1.0.15":
-  version "1.0.15"
-  resolved "https://registry.yarnpkg.com/@luggage/luggage-session/-/luggage-session-1.0.15.tgz#cf9783dd6d529249a8b557a90c967a77df7635ad"
+"@luggage/luggage-session@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@luggage/luggage-session/-/luggage-session-2.2.0.tgz#4ed7a933bc371ef6153dfb957af1d12dd41c4766"
   dependencies:
     dropbox "^4.0.7"
 
@@ -48,8 +48,8 @@ lorgnette@^1.2.0:
     babel-runtime "^6.11.0"
 
 moment@^2.19.3:
-  version "2.24.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
+  version "2.29.2"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.2.tgz#00910c60b20843bcba52d37d58c628b47b1f20e4"
 
 regenerator-runtime@^0.11.0:
   version "0.11.1"
