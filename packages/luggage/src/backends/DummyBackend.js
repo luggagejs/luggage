@@ -1,44 +1,39 @@
+// In-memory backend for tests. It behaves like a file storage:
+// reads return a copy of the stored data and writes replace it.
+const copy = data => (typeof data === 'undefined' ? data : JSON.parse(JSON.stringify(data)))
+
 class DummyBackendCollections {
   constructor(metaInfo) {
     this.metaInfo = metaInfo
   }
 
   readMetaInfo = () => {
-    return new Promise(resolve => {
-      resolve(this.metaInfo)
-    })
+    return Promise.resolve(copy(this.metaInfo))
   }
 
   writeMetaInfo = data => {
-    return new Promise(resolve => {
-      this.metaInfo = data
-      resolve(data)
-    })
+    this.metaInfo = copy(data)
+    return Promise.resolve(data)
   }
 }
 
 class DummyBackendCollection {
-  constructor(data) {
+  constructor(data = []) {
     this.data = data
   }
 
   read() {
-    return new Promise(resolve => {
-      resolve(this.data)
-    })
+    return Promise.resolve(copy(this.data))
   }
 
   write(data) {
-    return new Promise(resolve => {
-      resolve(data)
-    })
+    this.data = copy(data)
+    return Promise.resolve(data)
   }
 
   delete() {
-    return new Promise(resolve => {
-      this.data = []
-      resolve(this.data)
-    })
+    this.data = []
+    return Promise.resolve(copy(this.data))
   }
 }
 
@@ -53,12 +48,16 @@ export default class DummyBackend {
   }
 
   collection(name) {
-    return this.collectionMock.hasOwnProperty(name) ?
-      this.collectionMock[name] : new DummyBackendCollection([])
+    if (!this.collectionMock.hasOwnProperty(name)) {
+      this.collectionMock[name] = new DummyBackendCollection([])
+    }
+    return this.collectionMock[name]
   }
 
   collections(name) {
-    return this.collectionsMock ?
-      this.collectionsMock[name] : new DummyBackendCollections()
+    if (!this.collectionsMock.hasOwnProperty(name)) {
+      this.collectionsMock[name] = new DummyBackendCollections()
+    }
+    return this.collectionsMock[name]
   }
 }

@@ -6,6 +6,7 @@ import Collection from '../Collection'
 describe('Record', () => {
   let record
   let quotes
+  let backend
 
   beforeEach(() => {
     quotes = [
@@ -16,7 +17,7 @@ describe('Record', () => {
       { bla: 'blah blah blah mr. Freeman' }
     ]
 
-    const backend = new DropboxBackend('quotes', quotes)
+    backend = new DropboxBackend('quotes', quotes)
     const collection = new Collection('quotes', backend)
 
     record = collection.find({ quote: 'get' })
@@ -35,7 +36,7 @@ describe('Record', () => {
         r.quote = 'get it done'
         return r
       })
-      const fileData = quotes
+      const fileData = await backend.collection('quotes').read()
       const fileRecord = fileData.find(({quote}) => quote === 'get it done')
       expect(fileRecord).toEqual({ quote: 'get it done', author: 'John Doe' })
     })
@@ -64,7 +65,7 @@ describe('Record', () => {
   describe('Record#delete', () => {
     it('writes new data to json file', async () => {
       await record.delete()
-      const fileData = quotes
+      const fileData = await backend.collection('quotes').read()
       expect(fileData).not.toContainEqual({ quote: 'get', author: 'John Doe' })
     })
 
