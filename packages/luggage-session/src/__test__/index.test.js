@@ -1,4 +1,4 @@
-import SessionManager from '../index'
+import SessionManager from '../index.js'
 
 describe('index exports', () => {
   describe('default', () => {
