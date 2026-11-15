@@ -1,4 +1,4 @@
-import DummyBackend from '../backends/DummyBackend'
+import DummyBackend from '../backends/DummyBackend.js'
 
 describe('DummyBackend', () => {
   it('keeps written data for later reads', async () => {

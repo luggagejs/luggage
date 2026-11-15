@@ -1,11 +1,13 @@
-import { lens } from 'lorgnette'
-import Collection from '../Collection'
-import enqueue from '../lib/queue'
-import { collectionExistsError } from '../lib/errors'
+import Collection from '../Collection/index.js'
+import enqueue from '../lib/queue.js'
+import { readSnapshot } from '../lib/storage.js'
+import { CollectionExistsError } from '../lib/errors.js'
 
 export const metaProperties = {
   collectionsList: 'collectionsList'
 }
+
+const { collectionsList } = metaProperties
 
 class Collections {
   constructor(name, backend) {
@@ -15,7 +17,7 @@ class Collections {
   }
 
   getList() {
-    return this.readMetaProperty(metaProperties.collectionsList, [])
+    return this.readMetaProperty(collectionsList, [])
   }
 
   getInstance(name) {
@@ -30,54 +32,57 @@ class Collections {
 
   create(name) {
     return this.updateMeta(meta => {
-      const names = meta[metaProperties.collectionsList] || []
+      const names = meta[collectionsList] || []
 
       if (names.includes(name)) {
-        throw collectionExistsError(`${this.name}/${name}`)
+        throw new CollectionExistsError(`${this.name}/${name}`)
       }
 
       const instance = this.getInstance(name)
 
-      // A file can exist without being listed in meta: keep its data
-      return instance.read()
-        .then(data => (data.length > 0 ? data : instance.write([])))
-        .then(() => ({ ...meta, [metaProperties.collectionsList]: [...names, name] }))
+      // A file can exist without being listed in meta: keep its data.
+      // A new file is written with the revision it was read at, so a file
+      // created by somebody else in the meantime is not overwritten.
+      return instance.enqueue(() => instance.readSnapshot().then(({ data, rev }) => (
+        data.length > 0 ? data : instance.writeNow([], rev)
+      )))
+        .then(() => ({ ...meta, [collectionsList]: [...names, name] }))
     }).then(() => this.getInstance(name))
   }
 
   delete(name) {
-    return this.updateMeta(meta => {
-      const names = meta[metaProperties.collectionsList] || []
-      return { ...meta, [metaProperties.collectionsList]: names.filter(n => n !== name) }
-    })
+    return this.updateMeta(meta => ({
+      ...meta,
+      [collectionsList]: (meta[collectionsList] || []).filter(n => n !== name)
+    }))
       .then(() => this.getInstance(name).delete())
       .then(() => this.getInstance(name))
   }
 
   readMetaProperty(name, defaultValue) {
-    return this.readMeta(lens.prop(name), defaultValue)
-  }
-
-  writeMetaProperty(name, value) {
-    return this.writeMeta(lens.prop(name), value)
-  }
-
-  writeMeta(propertyLens, value) {
-    return this.updateMeta(data => propertyLens.set(data, value))
-  }
-
-  // Reads meta, changes it and writes it back. Changes of one meta file run one after another.
-  updateMeta(change) {
-    return enqueue(this.backend, `meta:${this.name}`, () => (
-      this.collectionsBackend.readMetaInfo()
-        .then(data => change(data || {}))
-        .then(this.collectionsBackend.writeMetaInfo)
+    return this.readMeta().then(({ data }) => (
+      typeof data[name] === 'undefined' ? defaultValue : data[name]
     ))
   }
 
-  readMeta(propertyLens, defaultValue) {
-    return this.collectionsBackend.readMetaInfo()
-      .then(data => propertyLens.get(data).getOr(defaultValue))
+  writeMetaProperty(name, value) {
+    return this.updateMeta(meta => ({ ...meta, [name]: value }))
+  }
+
+  readMeta() {
+    return readSnapshot(this.collectionsBackend, () => this.collectionsBackend.readMetaInfo())
+      .then(({ data, rev }) => ({ data: data || {}, rev }))
+  }
+
+  // Reads meta, changes it and writes it back with the revision it was read at.
+  // Changes of one meta file run one after another.
+  updateMeta(change) {
+    return enqueue(this.backend, `meta:${this.name}`, () => (
+      this.readMeta()
+        .then(({ data, rev }) => Promise.resolve(change(data)).then(newData => (
+          this.collectionsBackend.writeMetaInfo(newData, { rev }).then(() => newData)
+        )))
+    ))
   }
 }
 

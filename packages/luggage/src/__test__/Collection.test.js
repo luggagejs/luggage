@@ -1,8 +1,9 @@
+import { jest } from '@jest/globals'
 /* eslint max-nested-callbacks: 0 */
 
-import DropboxBackend from '../backends/DummyBackend'
-import Collection from '../Collection'
-import Filterable from '../traits/Filterable'
+import DropboxBackend from '../backends/DummyBackend.js'
+import Collection from '../Collection/index.js'
+import Filterable from '../traits/Filterable.js'
 
 describe('Collection', () => {
   let collection

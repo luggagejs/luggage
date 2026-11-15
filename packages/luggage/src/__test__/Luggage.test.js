@@ -1,6 +1,6 @@
-import Luggage from '../Luggage'
-import DropboxBackend from '../backends/DropboxBackend'
-import Collection from '../Collection'
+import Luggage from '../Luggage.js'
+import DropboxBackend from '../backends/dropbox/index.js'
+import Collection from '../Collection/index.js'
 
 describe('Luggage', () => {
   let store

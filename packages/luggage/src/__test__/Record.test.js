@@ -1,7 +1,8 @@
+import { jest } from '@jest/globals'
 /* eslint max-nested-callbacks: 0 */
 
-import DropboxBackend from '../backends/DummyBackend'
-import Collection from '../Collection'
+import DropboxBackend from '../backends/DummyBackend.js'
+import Collection from '../Collection/index.js'
 
 describe('Record', () => {
   let record

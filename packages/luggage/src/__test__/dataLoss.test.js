@@ -1,8 +1,9 @@
+import { jest } from '@jest/globals'
 /* eslint max-nested-callbacks: 0 */
 
-import DummyBackend from '../backends/DummyBackend'
-import Collection from '../Collection'
-import Collections, { metaProperties } from '../Collections'
+import DummyBackend from '../backends/DummyBackend.js'
+import Collection from '../Collection/index.js'
+import Collections, { metaProperties } from '../Collections/index.js'
 
 const { collectionsList } = metaProperties
 

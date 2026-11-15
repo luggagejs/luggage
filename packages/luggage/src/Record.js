@@ -1,6 +1,5 @@
-import { EventEmitter } from 'events'
-import events from './constants/events'
-import compose from './lib/compose'
+import Emitter from './lib/emitter.js'
+import derived from './lib/derived.js'
 
 function wrapTransform(transform) {
   if (typeof transform === 'function') {
@@ -12,11 +11,18 @@ function wrapTransform(transform) {
   }
 }
 
-@compose(EventEmitter.prototype)
-class Record {
+class Record extends derived(Emitter) {
   constructor(collection) {
+    super()
     this.collection = collection
-    this.collection.on(events.DATA_EVENT, this.dataChanged.bind(this))
+  }
+
+  get source() {
+    return this.collection
+  }
+
+  transformData(data) {
+    return data[0]
   }
 
   matches(item) {
@@ -35,10 +41,6 @@ class Record {
 
   delete() {
     return this.collection.deleteRecord(this)
-  }
-
-  dataChanged(data) {
-    this.emit(events.DATA_EVENT, data[0])
   }
 }
 
