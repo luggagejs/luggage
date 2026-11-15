@@ -1,8 +1,8 @@
 import React, { useEffect, useCallback, useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { lens } from 'lorgnette'
-import { Luggage, GoogleDriveBackend } from '@luggage/core'
-import * as utils from '@luggage/core/src/backends/utils'
+import { Luggage } from '@luggage/core'
+import { GoogleDriveBackend, getAPIClient, handleSignIn } from '@luggage/core/google-drive'
 import './App.css'
 
 const CLIENT_ID = '652410950137-l38bfpdgd0n7ugipjf88jguf8j0r3q03.apps.googleusercontent.com'
@@ -137,8 +137,8 @@ const App = () => {
   }, [])
 
   useEffect(() => {
-    utils.getAPIClient(config).then(gapi => {
-      utils.handleSignIn(gapi, isSignedIn => {
+    getAPIClient(config).then(gapi => {
+      handleSignIn(gapi, isSignedIn => {
         if (isSignedIn) {
           const luggage = new Luggage(new GoogleDriveBackend(gapi, { folderName: 'FoldersTestExample' }))
           setCollections(luggage.collections('folders test'))
