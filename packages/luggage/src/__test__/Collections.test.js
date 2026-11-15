@@ -1,8 +1,8 @@
 /* eslint max-nested-callbacks: 0 */
 
-import DropboxBackend from '../backends/DummyBackend'
-import Collections, { metaProperties } from '../Collections'
-import Collection from '../Collection'
+import DropboxBackend from '../backends/DummyBackend.js'
+import Collections, { metaProperties } from '../Collections/index.js'
+import Collection from '../Collection/index.js'
 
 const { collectionsList } = metaProperties
 

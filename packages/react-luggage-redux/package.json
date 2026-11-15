@@ -1,13 +1,24 @@
 {
   "name": "@luggage/react-luggage-redux",
-  "version": "2.2.0",
-  "description": "Binding to keep react-luggage and redux in sync",
-  "main": "build/index.js",
+  "version": "3.0.0",
+  "description": "Binding to keep luggage and redux in sync",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./package.json": "./package.json"
+  },
+  "main": "./src/index.js",
+  "files": [
+    "src",
+    "!src/**/__test__"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "lint": "eslint src",
-    "build": "babel --source-maps inline --optional runtime -d build/ src/",
-    "prepare": "yarn build",
-    "prepublish": "yarn build && yarn lint"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "lint": "eslint ."
   },
   "keywords": [
     "react",
@@ -15,9 +26,6 @@
     "dropbox",
     "redux"
   ],
-  "directories": {
-    "build": "build"
-  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -32,10 +40,9 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@luggagejs/luggage": "1.0"
+    "@luggage/core": "^3.0.0"
   },
-  "dependencies": {
-    "@luggage/luggage-session": "^2.2.0",
-    "lorgnette": "^1.2.0"
+  "devDependencies": {
+    "@luggage/core": "3.0.0"
   }
 }

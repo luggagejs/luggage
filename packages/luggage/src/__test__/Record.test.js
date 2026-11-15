@@ -1,11 +1,13 @@
+import { jest } from '@jest/globals'
 /* eslint max-nested-callbacks: 0 */
 
-import DropboxBackend from '../backends/DummyBackend'
-import Collection from '../Collection'
+import DropboxBackend from '../backends/DummyBackend.js'
+import Collection from '../Collection/index.js'
 
 describe('Record', () => {
   let record
   let quotes
+  let backend
 
   beforeEach(() => {
     quotes = [
@@ -16,7 +18,7 @@ describe('Record', () => {
       { bla: 'blah blah blah mr. Freeman' }
     ]
 
-    const backend = new DropboxBackend('quotes', quotes)
+    backend = new DropboxBackend('quotes', quotes)
     const collection = new Collection('quotes', backend)
 
     record = collection.find({ quote: 'get' })
@@ -35,7 +37,7 @@ describe('Record', () => {
         r.quote = 'get it done'
         return r
       })
-      const fileData = quotes
+      const fileData = await backend.collection('quotes').read()
       const fileRecord = fileData.find(({quote}) => quote === 'get it done')
       expect(fileRecord).toEqual({ quote: 'get it done', author: 'John Doe' })
     })
@@ -64,7 +66,7 @@ describe('Record', () => {
   describe('Record#delete', () => {
     it('writes new data to json file', async () => {
       await record.delete()
-      const fileData = quotes
+      const fileData = await backend.collection('quotes').read()
       expect(fileData).not.toContainEqual({ quote: 'get', author: 'John Doe' })
     })
 
@@ -94,15 +96,14 @@ describe('Record', () => {
       let counter = 0
 
       // Test case contains implementation detail, and because of that it is very fragile
-      // We have two reads on update
+      // We have one read and one write on update
       record.on('data', r => {
         counter = counter + 1
         switch (counter) {
         case 1:
-        case 2:
           expect(r).toEqual({ quote: 'get', author: 'John Doe' })
           break
-        case 3:
+        case 2:
           expect(r).toEqual({ quote: 'get', author: 'John Doe', famous: true })
           break
         default:
@@ -110,6 +111,7 @@ describe('Record', () => {
       })
 
       await record.update({ famous: true })
+      expect(counter).toEqual(2)
     })
   })
 })

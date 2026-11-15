@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { lens } from 'lorgnette'
-import { Luggage, DropboxBackend } from '@luggage/core'
+import { Luggage } from '@luggage/core'
+import { DropboxBackend } from '@luggage/core/dropbox'
 import './App.css'
 
 const token = "<your dropbox client token>"

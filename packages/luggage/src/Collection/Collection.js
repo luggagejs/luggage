@@ -1,24 +1,44 @@
-import equal from 'deep-equal'
-import { EventEmitter } from 'events'
-import events from '../constants/events'
-import Filterable from '../traits/Filterable'
-import compose from '../lib/compose'
+import events from '../constants/events.js'
+import Filterable from '../traits/Filterable.js'
+import enqueue from '../lib/queue.js'
+import { readSnapshot } from '../lib/storage.js'
+import { RecordNotFoundError } from '../lib/errors.js'
 
-@compose(EventEmitter.prototype)
 class Collection extends Filterable {
   constructor(name, backend) {
     super()
 
+    this.storage = backend
     this.backend = backend.collection(name)
     this.name = name
   }
 
-  read() {
-    return this.backend.read().then(this.dataChanged.bind(this))
+  // Changes of one collection file run one after another
+  enqueue(operation) {
+    return enqueue(this.storage, `collection:${this.name}`, operation)
   }
 
+  matches() {
+    return true
+  }
+
+  readSnapshot() {
+    return readSnapshot(this.backend, () => this.backend.read())
+  }
+
+  read() {
+    return this.readSnapshot().then(({ data }) => this.dataChanged(data))
+  }
+
+  // Replaces the whole file, whatever it contains now
   write(data = []) {
-    return this.backend.write(data).then(this.dataChanged.bind(this))
+    return this.enqueue(() => this.writeNow(data))
+  }
+
+  // rev is the revision the data was read at. A backend that supports
+  // revisions rejects with ConflictError if the file has changed since.
+  writeNow(data, rev) {
+    return this.backend.write(data, { rev }).then(() => this.dataChanged(data))
   }
 
   dataChanged(data) {
@@ -27,43 +47,55 @@ class Collection extends Filterable {
   }
 
   add(newRecord) {
-    return (
-      this.backend.read()
-        .then(data => {
+    return this.enqueue(() => (
+      this.readSnapshot()
+        .then(({ data, rev }) => {
           data.push(newRecord)
-          return Promise.all([newRecord, this.write(data)])
+          return Promise.all([newRecord, this.writeNow(data, rev)])
         })
-    )
+    ))
+  }
+
+  findRecordIndex(record, data) {
+    const recordIndex = data.findIndex(item => record.matches(item))
+
+    if (recordIndex === -1) {
+      throw new RecordNotFoundError(this.name)
+    }
+
+    return recordIndex
   }
 
   updateRecord(record, transform) {
-    return (
-      Promise.all([record.read(), this.read()])
-        .then(([r, data]) => {
-          const recordIndex = data.findIndex(rr => equal(rr, r))
-          return [recordIndex, r, data]
+    return this.enqueue(() => (
+      this.readSnapshot()
+        .then(({ data, rev }) => {
+          this.dataChanged(data)
+          const recordIndex = this.findRecordIndex(record, data)
+          const oldRecord = data[recordIndex]
+          const newRecord = transform.call(null, Object.assign({}, oldRecord))
+          const newData = data.slice()
+          newData[recordIndex] = newRecord
+          return Promise.all([newRecord, oldRecord, this.writeNow(newData, rev)])
         })
-        .then(([recordIndex, r, data]) => {
-          let newRecord = transform.call(null, Object.assign({}, r))
-          data[recordIndex] = newRecord
-          return Promise.all([newRecord, r, this.write(data)])
-        })
-    )
+    ))
   }
 
   deleteRecord(record) {
-    return (
-      Promise.all([record.read(), this.read()])
-        .then(([r, data]) => {
-          let recordIndex = data.findIndex(rr => equal(rr, r))
-          data.splice(recordIndex, 1)
-          return Promise.all([r, this.write(data)])
+    return this.enqueue(() => (
+      this.readSnapshot()
+        .then(({ data, rev }) => {
+          this.dataChanged(data)
+          const recordIndex = this.findRecordIndex(record, data)
+          const oldRecord = data[recordIndex]
+          const newData = data.filter((_, index) => index !== recordIndex)
+          return Promise.all([oldRecord, this.writeNow(newData, rev)])
         })
-    )
+    ))
   }
 
   delete() {
-    return this.backend.delete()
+    return this.enqueue(() => this.backend.delete())
   }
 }
 

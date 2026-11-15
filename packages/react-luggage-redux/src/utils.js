@@ -6,9 +6,9 @@ export const createAction = (type, ...argNames) => (...args) => {
   return action
 }
 
-export const createHandler = handlers => ({getState, dispatch, next, action}) => {
-  if (handlers.hasOwnProperty(action.type)) {
-    handlers[action.type]({getState, dispatch, next, action})
+export const createHandler = handlers => ({ getState, dispatch, next, action }) => {
+  if (Object.hasOwn(handlers, action.type)) {
+    handlers[action.type]({ getState, dispatch, next, action })
   }
-  next(action)
+  return next(action)
 }

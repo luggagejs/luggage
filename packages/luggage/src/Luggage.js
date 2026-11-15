@@ -1,5 +1,5 @@
-import Collection from './Collection'
-import Collections from './Collections'
+import Collection from './Collection/index.js'
+import Collections from './Collections/index.js'
 
 export default class Luggage {
   constructor(backend) {
