@@ -33,7 +33,17 @@ class SessionManager {
 
   // Resolves true when the user is signed in. Otherwise starts a redirect
   // to the Dropbox sign in page and resolves false.
+  // Calls made while a sign in is in progress share it: a code can be exchanged only once.
   authenticate() {
+    if (!this.pending) {
+      this.pending = this.startAuthentication().finally(() => {
+        this.pending = null
+      })
+    }
+    return this.pending
+  }
+
+  startAuthentication() {
     const refreshToken = this.storage.getItem(REFRESH_TOKEN_KEY)
 
     if (refreshToken) {

@@ -79,6 +79,13 @@ describe('SessionManager (PKCE)', () => {
       expect(location.assign).not.toHaveBeenCalled()
     })
 
+    it('exchanges the code once when called again before the exchange finished', async () => {
+      create('https://app.test/app?code=the-code')
+
+      await expect(Promise.all([session.authenticate(), session.authenticate()])).resolves.toEqual([true, true])
+      expect(auth.getAccessTokenFromCode).toHaveBeenCalledTimes(1)
+    })
+
     it('uses a stored refresh token without redirecting', async () => {
       sessionStorage.setItem(REFRESH_TOKEN_KEY, 'stored')
 

@@ -41,6 +41,9 @@ const luggageMiddleware = ({ authenticate, luggage, createBackend } = {}) => {
     // Collection instances are not serializable, so they live here and not in the store
     const collections = new Map()
     let luggagePromise = luggage ? Promise.resolve(luggage) : null
+    // Several actions can ask for authentication at once (fetches on start):
+    // they share one authenticate() call
+    let authentication = null
 
     const getLuggage = () => {
       if (!luggagePromise) {
@@ -100,17 +103,26 @@ const luggageMiddleware = ({ authenticate, luggage, createBackend } = {}) => {
       },
 
       [AUTHENTICATE_USER]: ({ action }) => {
-        Promise.resolve()
-          .then(() => authenticate())
-          .then(authenticated => {
-            dispatch(updateUserSuccess({ authenticated: Boolean(authenticated) }))
+        if (!authentication) {
+          authentication = Promise.resolve()
+            .then(() => authenticate())
+            .then(authenticated => {
+              dispatch(updateUserSuccess({ authenticated: Boolean(authenticated) }))
+              return Boolean(authenticated)
+            }, error => {
+              dispatch(authenticateUserFailure(error))
+              return false
+            })
+            .finally(() => {
+              authentication = null
+            })
+        }
 
-            if (authenticated && action.afterAuthenticate) {
-              dispatch(action.afterAuthenticate)
-            }
-          }, error => {
-            dispatch(authenticateUserFailure(error))
-          })
+        authentication.then(authenticated => {
+          if (authenticated && action.afterAuthenticate) {
+            dispatch(action.afterAuthenticate)
+          }
+        })
       },
 
       [ADD_RECORD]: ({ action }) => {

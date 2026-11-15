@@ -100,6 +100,19 @@ describe('luggageMiddleware', () => {
       expect(userUpdate.data).toEqual({ authenticated: true })
     })
 
+    it('authenticates once for fetches dispatched before authentication finished', async () => {
+      backend.collection('books').write([{ title: 't' }])
+      authenticate.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve(true), 5)))
+      const store = createStore(luggageMiddleware({ luggage, authenticate }))
+      store.dispatch(fetchCollection('quotes'))
+      store.dispatch(fetchCollection('books'))
+      await new Promise(resolve => setTimeout(resolve, 20))
+
+      expect(authenticate).toHaveBeenCalledTimes(1)
+      expect(store.getState().luggage.collections.quotes).toHaveLength(2)
+      expect(store.getState().luggage.collections.books).toEqual([{ title: 't' }])
+    })
+
     it('dispatches AUTHENTICATE_USER_FAILURE when authenticate fails', async () => {
       authenticate.mockImplementation(() => Promise.reject(new Error('denied')))
       const store = createStore(luggageMiddleware({ luggage, authenticate }))
