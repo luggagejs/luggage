@@ -1,5 +1,4 @@
-import { lens, multi } from 'lorgnette'
-import * as actions from './actions'
+import * as actions from './actions.js'
 
 const initialState = {
   collections: {},
@@ -7,33 +6,53 @@ const initialState = {
     authenticated: false
   },
   meta: {
-    collections: {},
     syncing: {
       [actions.FETCH_COLLECTION]: false,
       [actions.ADD_RECORD]: false,
       [actions.UPDATE_RECORD]: false,
       [actions.DELETE_RECORD]: false
-    }
+    },
+    // The last error of each operation as { name, message, collectionName }
+    errors: {}
   }
 }
 
-const userLens = lens.prop('user')
-const syncingLens = source => lens.prop('meta').prop('syncing').prop(source)
-const collectionsLens = name => multi(
-  lens.prop('collections').prop(name, []),
-  lens.prop('meta').prop('collections').prop(name)
-)
+const failures = {
+  [actions.AUTHENTICATE_USER_FAILURE]: actions.AUTHENTICATE_USER,
+  [actions.FETCH_COLLECTION_FAILURE]: actions.FETCH_COLLECTION,
+  [actions.ADD_RECORD_FAILURE]: actions.ADD_RECORD,
+  [actions.UPDATE_RECORD_FAILURE]: actions.UPDATE_RECORD,
+  [actions.DELETE_RECORD_FAILURE]: actions.DELETE_RECORD
+}
+
+const serializeError = (error, collectionName) => ({
+  name: (error && error.name) || 'Error',
+  message: (error && error.message) || String(error),
+  ...(collectionName ? { collectionName } : {})
+})
+
+const setMeta = (state, key, source, value) => ({
+  ...state,
+  meta: {
+    ...state.meta,
+    [key]: { ...state.meta[key], [source]: value }
+  }
+})
 
 const luggageReducer = (state = initialState, action) => {
-  switch(action.type) {
+  if (Object.hasOwn(failures, action.type)) {
+    return setMeta(state, 'errors', failures[action.type], serializeError(action.error, action.collectionName))
+  }
+
+  switch (action.type) {
   case actions.UPDATE_USER_SUCCESS:
-    return userLens.update(state, u => ({ ...u, ...action.data }))
+    return { ...state, user: { ...state.user, ...action.data } }
   case actions.UPDATE_COLLECTION_SUCCESS:
-    return collectionsLens(action.collectionName).set(state, action.data, action.collection)
+    return { ...state, collections: { ...state.collections, [action.collectionName]: action.data } }
   case actions.START_SYNCING:
-    return syncingLens(action.source).set(state, true)
+    return setMeta(setMeta(state, 'syncing', action.source, true), 'errors', action.source, null)
   case actions.FINISH_SYNCING:
-    return syncingLens(action.source).set(state, false)
+    return setMeta(state, 'syncing', action.source, false)
   default:
     return state
   }

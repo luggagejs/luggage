@@ -1,6 +1,5 @@
-import Luggage, { DropboxBackend } from '@luggage/core'
-import LuggageSession from '@luggage/luggage-session'
-import { createHandler } from './utils'
+import { Luggage } from '@luggage/core'
+import { createHandler } from './utils.js'
 
 import {
   FETCH_COLLECTION,
@@ -14,101 +13,157 @@ import {
   addRecordSuccess,
   updateRecordSuccess,
   deleteRecordSuccess,
+  authenticateUserFailure,
+  fetchCollectionFailure,
+  addRecordFailure,
+  updateRecordFailure,
+  deleteRecordFailure,
   startSyncing,
   finishSyncing
-} from './actions'
+} from './actions.js'
 
-const luggageMiddleware = ({
-  apiKey,
-  redirectUrl = '/',
-  Backend = DropboxBackend,
-  SessionManager = LuggageSession
-}) => ({getState, dispatch}) => next => action => {
-  createHandler({
-    [FETCH_COLLECTION]: ({ getState, dispatch, action }) => {
-      const { user } = getState().luggage
+const notLoadedError = name => new Error(`Collection "${name}" is not loaded, dispatch fetchCollection first`)
 
-      if (user.authenticated) {
-        let luggage = new Luggage(new Backend(user.token))
-        let collection = luggage.collection(action.name)
+// Options:
+//   authenticate: () => boolean | Promise<boolean>, required. Resolves true when the user
+//     is signed in. It may start a redirect to the sign in page and resolve false.
+//   luggage: a Luggage instance, or
+//   createBackend: () => backend | Promise<backend>, called once after authentication.
+const luggageMiddleware = ({ authenticate, luggage, createBackend } = {}) => {
+  if (typeof authenticate !== 'function') {
+    throw new TypeError('luggageMiddleware: the authenticate option is required')
+  }
+  if (!luggage && typeof createBackend !== 'function') {
+    throw new TypeError('luggageMiddleware: pass a luggage instance or a createBackend function')
+  }
 
-        dispatch(startSyncing(FETCH_COLLECTION))
+  return ({ getState, dispatch }) => {
+    // Collection instances are not serializable, so they live here and not in the store
+    const collections = new Map()
+    let luggagePromise = luggage ? Promise.resolve(luggage) : null
 
-        collection.read().then(data => {
-          dispatch(updateCollectionSuccess(action.name, data, collection))
-          dispatch(finishSyncing(FETCH_COLLECTION))
-        }).catch(() => {
-          dispatch(finishSyncing(FETCH_COLLECTION))
+    const getLuggage = () => {
+      if (!luggagePromise) {
+        luggagePromise = Promise.resolve(createBackend()).then(backend => new Luggage(backend))
+        luggagePromise.catch(() => {
+          luggagePromise = null
         })
-      } else {
-        dispatch(authenticateUser(action))
       }
-    },
-
-    [AUTHENTICATE_USER]: ({ dispatch, action }) => {
-      const sessionManager = new SessionManager({apiKey, redirectUrl})
-      const token = sessionManager.getToken()
-
-      dispatch(updateUserSuccess({ token, authenticated: true }))
-
-      if (action.afterAuthenticate) {
-        dispatch(action.afterAuthenticate)
-      }
-    },
-
-    [ADD_RECORD]: ({ dispatch, action }) => {
-      const { collectionName, recordData } = action
-      const collection = getState().luggage.meta.collections[collectionName]
-
-      if (collection) {
-        dispatch(startSyncing(ADD_RECORD))
-        collection.add(recordData)
-          .then(([newRecord, newCollection]) => {
-            dispatch(addRecordSuccess(collectionName, newRecord))
-            dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
-            dispatch(finishSyncing(ADD_RECORD))
-          }).catch(() => {
-            dispatch(finishSyncing(ADD_RECORD))
-          })
-      }
-    },
-
-    [UPDATE_RECORD]: ({ dispatch, action }) => {
-      const { collectionName, recordId, transform } = action
-      const collection = getState().luggage.meta.collections[collectionName]
-      const record = collection.find(recordId)
-
-      if (collection) {
-        dispatch(startSyncing(UPDATE_RECORD))
-        collection.updateRecord(record, transform)
-          .then(([newRecord, oldRecord, newCollection]) => {
-            dispatch(updateRecordSuccess(collectionName, newRecord, oldRecord))
-            dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
-            dispatch(finishSyncing(UPDATE_RECORD))
-          }).catch(() => {
-            dispatch(finishSyncing(UPDATE_RECORD))
-          })
-      }
-    },
-
-    [DELETE_RECORD]: ({ dispatch, action }) => {
-      const { collectionName, recordId } = action
-      const collection = getState().luggage.meta.collections[collectionName]
-      const record = collection.find(recordId)
-
-      if (collection) {
-        dispatch(startSyncing(DELETE_RECORD))
-        collection.deleteRecord(record)
-          .then(([deletedRecord, newCollection]) => {
-            dispatch(deleteRecordSuccess(collectionName, deletedRecord))
-            dispatch(updateCollectionSuccess(collectionName, newCollection, collection))
-            dispatch(finishSyncing(DELETE_RECORD))
-          }).catch(() => {
-            dispatch(finishSyncing(DELETE_RECORD))
-          })
-      }
+      return luggagePromise
     }
-  })({ getState, dispatch, next, action })
+
+    const run = (source, operation, onSuccess, onFailure) => {
+      dispatch(startSyncing(source))
+      return Promise.resolve()
+        .then(operation)
+        .then(result => {
+          onSuccess(result)
+          dispatch(finishSyncing(source))
+        }, error => {
+          dispatch(onFailure(error))
+          dispatch(finishSyncing(source))
+        })
+    }
+
+    const loadedCollection = name => {
+      const collection = collections.get(name)
+      if (!collection) {
+        throw notLoadedError(name)
+      }
+      return collection
+    }
+
+    // A record that nobody listens to does not subscribe to the collection,
+    // dispose() makes sure nothing is left after the operation
+    const withRecord = (collection, recordId, operation) => {
+      const record = collection.find(recordId)
+      return operation(record).finally(() => record.dispose())
+    }
+
+    const handle = createHandler({
+      [FETCH_COLLECTION]: ({ action }) => {
+        if (!getState().luggage.user.authenticated) {
+          dispatch(authenticateUser(action))
+          return
+        }
+
+        run(
+          FETCH_COLLECTION,
+          () => getLuggage().then(l => {
+            const collection = collections.get(action.name) || l.collection(action.name)
+            collections.set(action.name, collection)
+            return collection.read()
+          }),
+          data => dispatch(updateCollectionSuccess(action.name, data)),
+          error => fetchCollectionFailure(action.name, error)
+        )
+      },
+
+      [AUTHENTICATE_USER]: ({ action }) => {
+        Promise.resolve()
+          .then(() => authenticate())
+          .then(authenticated => {
+            dispatch(updateUserSuccess({ authenticated: Boolean(authenticated) }))
+
+            if (authenticated && action.afterAuthenticate) {
+              dispatch(action.afterAuthenticate)
+            }
+          }, error => {
+            dispatch(authenticateUserFailure(error))
+          })
+      },
+
+      [ADD_RECORD]: ({ action }) => {
+        const { collectionName, recordData } = action
+
+        run(
+          ADD_RECORD,
+          () => loadedCollection(collectionName).add(recordData),
+          ([newRecord, newCollection]) => {
+            dispatch(addRecordSuccess(collectionName, newRecord))
+            dispatch(updateCollectionSuccess(collectionName, newCollection))
+          },
+          error => addRecordFailure(collectionName, recordData, error)
+        )
+      },
+
+      [UPDATE_RECORD]: ({ action }) => {
+        const { collectionName, recordId, transform } = action
+
+        run(
+          UPDATE_RECORD,
+          () => {
+            const collection = loadedCollection(collectionName)
+            return withRecord(collection, recordId, record => record.update(transform))
+          },
+          ([newRecord, oldRecord, newCollection]) => {
+            dispatch(updateRecordSuccess(collectionName, newRecord, oldRecord))
+            dispatch(updateCollectionSuccess(collectionName, newCollection))
+          },
+          error => updateRecordFailure(collectionName, recordId, error)
+        )
+      },
+
+      [DELETE_RECORD]: ({ action }) => {
+        const { collectionName, recordId } = action
+
+        run(
+          DELETE_RECORD,
+          () => {
+            const collection = loadedCollection(collectionName)
+            return withRecord(collection, recordId, record => record.delete())
+          },
+          ([deletedRecord, newCollection]) => {
+            dispatch(deleteRecordSuccess(collectionName, deletedRecord))
+            dispatch(updateCollectionSuccess(collectionName, newCollection))
+          },
+          error => deleteRecordFailure(collectionName, recordId, error)
+        )
+      }
+    })
+
+    return next => action => handle({ getState, dispatch, next, action })
+  }
 }
 
 export default luggageMiddleware
