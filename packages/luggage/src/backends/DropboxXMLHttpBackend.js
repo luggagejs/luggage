@@ -51,7 +51,8 @@ class DropboxCollections {
     return readXMLHttp({
       apiPath: downloadApiPath,
       token: this.token,
-      path: this.metaFilePath
+      path: this.metaFilePath,
+      defaultValue: {}
     })
   }
 

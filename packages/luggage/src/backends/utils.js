@@ -1,98 +1,154 @@
 /* eslint no-shadow: 0 */
 
-export const readXMLHttp = ({ path, token, apiPath }) => {
-  return new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest()
+import { parseError } from '../lib/errors'
 
-    request.onload = () => {
-      const data = JSON.parse(request.responseText)
-
-      if (data.error) {
-        if (data.error['.tag'] === 'path') {
-          resolve([])
-        } else {
-          reject(data.error)
-        }
-      } else {
-        resolve(data)
-      }
-    }
-
-    request.ontimeout = () => {
-      reject(request.responseText)
-    }
-    request.onerror = () => {
-      reject(request.responseText)
-    }
-    request.open('POST', apiPath)
-    request.setRequestHeader('Authorization', `Bearer ${token}`)
-    request.setRequestHeader('Dropbox-API-Arg', JSON.stringify({ path }))
-    request.send()
-  })
+const parseJson = (text, path) => {
+  try {
+    return JSON.parse(text)
+  } catch (error) {
+    throw parseError(path, error)
+  }
 }
 
-
-export const writeXMLHttp = ({ data, path, token, apiPath }) => {
-  return new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest()
-
-    request.onload = () => {
-      const response = request.responseText
-      if (response.error) {
-        reject(response.error)
-      } else {
-        resolve(data)
-      }
-    }
-
-    request.ontimeout = () => {
-      reject(request.responseText)
-    }
-    request.onerror = () => {
-      reject(request.responseText)
-    }
-    request.open('POST', apiPath)
-    request.setRequestHeader('Authorization', `Bearer ${token}`)
-    request.setRequestHeader('Dropbox-API-Arg', JSON.stringify({ path, mode: 'overwrite' }))
-    request.setRequestHeader('Content-Type', 'application/octet-stream')
-    request.send(JSON.stringify(data))
-  })
+const parseJsonOrText = text => {
+  try {
+    return JSON.parse(text)
+  } catch (error) {
+    return text
+  }
 }
 
+const isOk = status => status >= 200 && status < 300
 
-export const deleteXMLHttp = ({ path, token, apiPath }) => {
-  return new Promise((resolve, reject) => {
+// Only a missing file means an empty collection. Every other error
+// (malformed_path, restricted_content, locked, ...) must reach the caller,
+// otherwise the next write would replace the whole file.
+export const isNotFoundError = error => Boolean(
+  error &&
+  error['.tag'] === 'path' &&
+  error.path &&
+  error.path['.tag'] === 'not_found'
+)
+
+const httpError = (status, body) => {
+  const parsed = parseJsonOrText(body)
+  const error = new Error(
+    `Dropbox request failed with HTTP ${status}: ${(parsed && parsed.error_summary) || body}`
+  )
+  error.status = status
+  error.error = parsed && parsed.error ? parsed.error : parsed
+  return error
+}
+
+const sendXMLHttp = ({ apiPath, headers, body, onLoad }) => (
+  new Promise((resolve, reject) => {
     const request = new XMLHttpRequest()
 
     request.onload = () => {
-      const response = request.responseText
-      if (response.error) {
-        reject(response.error)
-      } else {
-        resolve(response)
+      try {
+        resolve(onLoad(request))
+      } catch (error) {
+        reject(error)
       }
     }
-
     request.ontimeout = () => {
-      reject(request.responseText)
+      reject(httpError(request.status, request.responseText))
     }
     request.onerror = () => {
-      reject(request.responseText)
+      reject(httpError(request.status, request.responseText))
     }
     request.open('POST', apiPath)
-    request.setRequestHeader('Authorization', `Bearer ${token}`)
-    request.setRequestHeader('Content-Type', 'application/json')
-    request.send(JSON.stringify({ path }))
+    Object.keys(headers).forEach(name => request.setRequestHeader(name, headers[name]))
+    request.send(body)
+  })
+)
+
+export const readXMLHttp = ({ path, token, apiPath, defaultValue = [] }) => (
+  sendXMLHttp({
+    apiPath,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Dropbox-API-Arg': JSON.stringify({ path })
+    },
+    onLoad: request => {
+      if (isOk(request.status)) {
+        return parseJson(request.responseText, path)
+      }
+
+      const error = httpError(request.status, request.responseText)
+
+      if (request.status === 409 && isNotFoundError(error.error)) {
+        return defaultValue
+      }
+
+      throw error
+    }
+  })
+)
+
+
+export const writeXMLHttp = ({ data, path, token, apiPath }) => (
+  sendXMLHttp({
+    apiPath,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Dropbox-API-Arg': JSON.stringify({ path, mode: 'overwrite' }),
+      'Content-Type': 'application/octet-stream'
+    },
+    body: JSON.stringify(data),
+    onLoad: request => {
+      if (!isOk(request.status)) {
+        throw httpError(request.status, request.responseText)
+      }
+      return data
+    }
+  })
+)
+
+
+export const deleteXMLHttp = ({ path, token, apiPath }) => (
+  sendXMLHttp({
+    apiPath,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ path }),
+    onLoad: request => {
+      if (!isOk(request.status)) {
+        throw httpError(request.status, request.responseText)
+      }
+      return parseJsonOrText(request.responseText)
+    }
+  })
+)
+
+
+// Rejects for any non-2xx fetch response
+export const checkFetchResponse = response => {
+  if (response.ok) {
+    return response
+  }
+
+  return response.text().then(body => {
+    throw httpError(response.status, body)
   })
 }
 
 
 export const sdkBinaryToJson = data => {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
     reader.onload = e => {
-      resolve(JSON.parse(e.target.result))
+      try {
+        resolve(parseJson(e.target.result, data.name || data.path_display))
+      } catch (error) {
+        reject(error)
+      }
+    }
+    reader.onerror = () => {
+      reject(reader.error)
     }
 
     reader.readAsText(data.fileBlob)
@@ -101,14 +157,14 @@ export const sdkBinaryToJson = data => {
 
 
 export const binaryToJson = data => {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const reader = data.content.getReader()
     let result = new Uint8Array()
 
     reader.read().then(function processText({ done, value }) {
       if (done) {
         const jsonString = new TextDecoder('utf-8').decode(result)
-        return resolve(JSON.parse(jsonString))
+        return resolve(parseJson(jsonString, data.metadata && data.metadata.path_display))
       }
 
       const tmpValue = new Uint8Array(result.length + value.length)
@@ -118,26 +174,37 @@ export const binaryToJson = data => {
       result = tmpValue
 
       return reader.read().then(processText)
-    })
+    }).catch(reject)
   })
 }
 
 
-// Error is a string but this may change
+// dropbox@4 rejects with the response body as a string
 // https://github.com/dropbox/dropbox-sdk-js/issues/145
-const handleSdkDropboxErrorWith = defaultValue => data => {
-  if (data.error) {
-    const message = JSON.parse(data.error)
-
-    switch(message.error['.tag']) {
-    case 'path':
-      return defaultValue
-    default:
-      throw message.error
-    }
-  } else {
-    return data
+const sdkErrorBody = rejection => {
+  if (!rejection || typeof rejection.error === 'undefined') {
+    return null
   }
+
+  const body = typeof rejection.error === 'string'
+    ? parseJsonOrText(rejection.error)
+    : rejection.error
+
+  return body && body.error ? body.error : body
+}
+
+const handleSdkDropboxErrorWith = defaultValue => rejection => {
+  const error = sdkErrorBody(rejection)
+
+  if (isNotFoundError(error)) {
+    return defaultValue
+  }
+
+  if (error && typeof error === 'object') {
+    throw error
+  }
+
+  throw rejection
 }
 
 
@@ -145,17 +212,16 @@ export const handleSdkDropboxError = handleSdkDropboxErrorWith([])
 export const handleMetaSdkDropboxError = handleSdkDropboxErrorWith({})
 
 
+// For transports that resolve with the response body even for errors
 const handleDropboxErrorWith = defaultValue => data => {
-  if (data.error) {
-    switch(data.error['.tag']) {
-    case 'path':
+  if (data && data.error) {
+    if (isNotFoundError(data.error)) {
       return defaultValue
-    default:
-      throw data.error
     }
-  } else {
-    return data
+    throw data.error
   }
+
+  return data
 }
 
 

@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import { downloadApiPath, uploadApiPath, deleteApiPath } from './constants'
-import { handleDropboxError, handleMetaDropboxError } from './utils'
+import { handleDropboxError, handleMetaDropboxError, checkFetchResponse } from './utils'
 
 const readWithFetch = ({ path, token, apiPath }) => (
   fetch(apiPath, {
@@ -22,7 +22,9 @@ const writeWithFetch = ({ data, path, token, apiPath }) => (
       'Dropbox-API-Arg': JSON.stringify({ path }),
       'Content-Type': 'application/octet-stream'
     }
-  }).then(() => data)
+  })
+    .then(checkFetchResponse)
+    .then(() => data)
 )
 
 const deleteWithFetch = ({ path, token, apiPath }) => (
@@ -33,7 +35,7 @@ const deleteWithFetch = ({ path, token, apiPath }) => (
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
     }
-  })
+  }).then(checkFetchResponse)
 )
 
 class DropboxCollection {

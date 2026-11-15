@@ -1,5 +1,5 @@
 import { download, putFile } from 'dropbox-client'
-import { binaryToJson, handleDropboxError, genericBackend } from './utils'
+import { binaryToJson, handleDropboxError, handleMetaDropboxError, checkFetchResponse, genericBackend } from './utils'
 
 class DropboxCollection {
   constructor(name, backend) {
@@ -23,7 +23,9 @@ class DropboxCollection {
       JSON.stringify(data),
       'text/plain; charset=dropbox-cors-hack',
       {path: this.filePath, mode: 'overwrite'}
-    ).then(() => data)
+    )
+      .then(checkFetchResponse)
+      .then(() => data)
   }
 
   delete() {
@@ -44,7 +46,7 @@ class DropboxCollections {
   readMetaInfo = () => {
     return download(this.token, { path: this.metaFilePath })
       .then(binaryToJson)
-      .then(handleDropboxError)
+      .then(handleMetaDropboxError)
   }
 
   writeMetaInfo = data => {
@@ -53,7 +55,9 @@ class DropboxCollections {
       JSON.stringify(data),
       'text/plain; charset=dropbox-cors-hack',
       {path: this.metaFilePath, mode: 'overwrite'}
-    ).then(() => data)
+    )
+      .then(checkFetchResponse)
+      .then(() => data)
   }
 }
 
