@@ -1,5 +1,7 @@
 import { lens } from 'lorgnette'
 import Collection from '../Collection'
+import enqueue from '../lib/queue'
+import { collectionExistsError } from '../lib/errors'
 
 export const metaProperties = {
   collectionsList: 'collectionsList'
@@ -27,16 +29,27 @@ class Collections {
   }
 
   create(name) {
-    return this.getInstance(name)
-      .write([])
-      .then(() => this.writeMeta(lens.prop(metaProperties.collectionsList, []).last(), name))
-      .then(() => this.getInstance(name))
+    return this.updateMeta(meta => {
+      const names = meta[metaProperties.collectionsList] || []
+
+      if (names.includes(name)) {
+        throw collectionExistsError(`${this.name}/${name}`)
+      }
+
+      const instance = this.getInstance(name)
+
+      // A file can exist without being listed in meta: keep its data
+      return instance.read()
+        .then(data => (data.length > 0 ? data : instance.write([])))
+        .then(() => ({ ...meta, [metaProperties.collectionsList]: [...names, name] }))
+    }).then(() => this.getInstance(name))
   }
 
   delete(name) {
-    return this.getList()
-      .then(names => names.filter(n => n !== name))
-      .then(names => this.writeMeta(lens.prop(metaProperties.collectionsList), names))
+    return this.updateMeta(meta => {
+      const names = meta[metaProperties.collectionsList] || []
+      return { ...meta, [metaProperties.collectionsList]: names.filter(n => n !== name) }
+    })
       .then(() => this.getInstance(name).delete())
       .then(() => this.getInstance(name))
   }
@@ -50,9 +63,16 @@ class Collections {
   }
 
   writeMeta(propertyLens, value) {
-    return this.collectionsBackend.readMetaInfo()
-      .then(data => propertyLens.set(data, value))
-      .then(this.collectionsBackend.writeMetaInfo)
+    return this.updateMeta(data => propertyLens.set(data, value))
+  }
+
+  // Reads meta, changes it and writes it back. Changes of one meta file run one after another.
+  updateMeta(change) {
+    return enqueue(this.backend, `meta:${this.name}`, () => (
+      this.collectionsBackend.readMetaInfo()
+        .then(data => change(data || {}))
+        .then(this.collectionsBackend.writeMetaInfo)
+    ))
   }
 
   readMeta(propertyLens, defaultValue) {

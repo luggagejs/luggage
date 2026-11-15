@@ -1,16 +1,26 @@
-import equal from 'deep-equal'
 import { EventEmitter } from 'events'
 import events from '../constants/events'
 import Filterable from '../traits/Filterable'
 import compose from '../lib/compose'
+import enqueue from '../lib/queue'
+import { recordNotFoundError } from '../lib/errors'
 
 @compose(EventEmitter.prototype)
 class Collection extends Filterable {
   constructor(name, backend) {
     super()
 
+    this.storage = backend
     this.backend = backend.collection(name)
     this.name = name
+  }
+
+  enqueue(operation) {
+    return enqueue(this.storage, `collection:${this.name}`, operation)
+  }
+
+  matches() {
+    return true
   }
 
   read() {
@@ -18,6 +28,10 @@ class Collection extends Filterable {
   }
 
   write(data = []) {
+    return this.enqueue(() => this.writeNow(data))
+  }
+
+  writeNow(data) {
     return this.backend.write(data).then(this.dataChanged.bind(this))
   }
 
@@ -27,43 +41,51 @@ class Collection extends Filterable {
   }
 
   add(newRecord) {
-    return (
+    return this.enqueue(() => (
       this.backend.read()
         .then(data => {
           data.push(newRecord)
-          return Promise.all([newRecord, this.write(data)])
+          return Promise.all([newRecord, this.writeNow(data)])
         })
-    )
+    ))
+  }
+
+  findRecordIndex(record, data) {
+    const recordIndex = data.findIndex(item => record.matches(item))
+
+    if (recordIndex === -1) {
+      throw recordNotFoundError(this.name)
+    }
+
+    return recordIndex
   }
 
   updateRecord(record, transform) {
-    return (
-      Promise.all([record.read(), this.read()])
-        .then(([r, data]) => {
-          const recordIndex = data.findIndex(rr => equal(rr, r))
-          return [recordIndex, r, data]
-        })
-        .then(([recordIndex, r, data]) => {
-          let newRecord = transform.call(null, Object.assign({}, r))
+    return this.enqueue(() => (
+      this.read()
+        .then(data => {
+          const recordIndex = this.findRecordIndex(record, data)
+          const oldRecord = data[recordIndex]
+          const newRecord = transform.call(null, Object.assign({}, oldRecord))
           data[recordIndex] = newRecord
-          return Promise.all([newRecord, r, this.write(data)])
+          return Promise.all([newRecord, oldRecord, this.writeNow(data)])
         })
-    )
+    ))
   }
 
   deleteRecord(record) {
-    return (
-      Promise.all([record.read(), this.read()])
-        .then(([r, data]) => {
-          let recordIndex = data.findIndex(rr => equal(rr, r))
-          data.splice(recordIndex, 1)
-          return Promise.all([r, this.write(data)])
+    return this.enqueue(() => (
+      this.read()
+        .then(data => {
+          const recordIndex = this.findRecordIndex(record, data)
+          const [oldRecord] = data.splice(recordIndex, 1)
+          return Promise.all([oldRecord, this.writeNow(data)])
         })
-    )
+    ))
   }
 
   delete() {
-    return this.backend.delete()
+    return this.enqueue(() => this.backend.delete())
   }
 }
 

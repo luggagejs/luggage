@@ -95,15 +95,14 @@ describe('Record', () => {
       let counter = 0
 
       // Test case contains implementation detail, and because of that it is very fragile
-      // We have two reads on update
+      // We have one read and one write on update
       record.on('data', r => {
         counter = counter + 1
         switch (counter) {
         case 1:
-        case 2:
           expect(r).toEqual({ quote: 'get', author: 'John Doe' })
           break
-        case 3:
+        case 2:
           expect(r).toEqual({ quote: 'get', author: 'John Doe', famous: true })
           break
         default:
@@ -111,6 +110,7 @@ describe('Record', () => {
       })
 
       await record.update({ famous: true })
+      expect(counter).toEqual(2)
     })
   })
 })

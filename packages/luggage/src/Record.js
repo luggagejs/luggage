@@ -19,6 +19,10 @@ class Record {
     this.collection.on(events.DATA_EVENT, this.dataChanged.bind(this))
   }
 
+  matches(item) {
+    return this.collection.matches(item)
+  }
+
   read() {
     return this.collection.read().then((data) => {
       return data[0]

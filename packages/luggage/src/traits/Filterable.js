@@ -44,6 +44,10 @@ class FilteredCollection extends Filterable {
     delegate(this, 'deleteRecord', this.collection)
   }
 
+  matches(item) {
+    return this.collection.matches(item) && this.filter(item)
+  }
+
   read() {
     return this.collection.read().then((data) => {
       return data.filter(this.filter)
