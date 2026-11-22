@@ -16,6 +16,29 @@ describe('luggageReducer', () => {
     expect(initial.collections).toEqual({})
   })
 
+  describe('a state saved by 2.x (no meta.pending, meta.errors)', () => {
+    const saved = {
+      collections: { quotes: [1] },
+      user: { authenticated: false },
+      meta: { collections: {}, syncing: { '@@luggage/FETCH_COLLECTION': false } }
+    }
+
+    it('starts and finishes syncing', () => {
+      const started = luggageReducer(saved, startSyncing('@@luggage/FETCH_COLLECTION'))
+      expect(started.meta.syncing['@@luggage/FETCH_COLLECTION']).toBe(true)
+      expect(started.meta.errors['@@luggage/FETCH_COLLECTION']).toBeNull()
+
+      const finished = luggageReducer(started, finishSyncing('@@luggage/FETCH_COLLECTION'))
+      expect(finished.meta.syncing['@@luggage/FETCH_COLLECTION']).toBe(false)
+      expect(finished.collections.quotes).toEqual([1])
+    })
+
+    it('stores an error', () => {
+      const state = luggageReducer(saved, authenticateUserFailure(new Error('offline')))
+      expect(state.meta.errors['@@luggage/AUTHENTICATE_USER']).toEqual({ name: 'Error', message: 'offline' })
+    })
+  })
+
   it('merges user data', () => {
     const state = luggageReducer(initial, updateUserSuccess({ authenticated: true }))
     expect(state.user).toEqual({ authenticated: true })

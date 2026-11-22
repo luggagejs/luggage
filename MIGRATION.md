@@ -56,6 +56,7 @@ In the browser, `@luggage/luggage-session` signs the user in and returns such a 
 | file is not valid json                                 | promise never settled                  | rejects with `ParseError`                  |
 | `update`/`delete` of a record that is not in the file  | deleted the last record / lost the change | rejects with `RecordNotFoundError`, file unchanged |
 | `Collections#create` with a name that is already listed | overwrote the collection with `[]`     | rejects with `CollectionExistsError`       |
+| `where`/`and`/`find` with a number, string or array (`find(3)`) | matched every record (or the wrong ones): `find(3).update(...)` changed the first record | throws `TypeError`; pass an object (`{ id: 3 }`) or a function |
 | file changed by another device since it was read       | the other change was lost              | rejects with `ConflictError`, nothing written |
 | missing file                                           | `[]` (`{}` for meta)                   | the same                                   |
 
@@ -167,3 +168,7 @@ failure action (in 2.x it was ignored or threw).
 
 `recordId` and `transform` can still be functions, but objects keep actions serializable:
 `updateRecord('articles', { id: 3 }, { title: 'Renamed' })`.
+
+`recordId` must be an object or a function. A bare id (`deleteRecord('articles', 3)`) changed or deleted the
+first record of the collection in 2.x; now it dispatches `UPDATE_RECORD_FAILURE`/`DELETE_RECORD_FAILURE` with a
+`TypeError` and nothing is written.

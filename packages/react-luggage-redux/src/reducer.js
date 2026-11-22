@@ -33,6 +33,9 @@ const serializeError = (error, collectionName) => ({
   ...(collectionName ? { collectionName } : {})
 })
 
+// A state saved by 2.x (preloadedState, redux-persist) has no meta.pending or meta.errors
+const getMeta = (state, key, source) => (state.meta[key] || {})[source]
+
 const setMeta = (state, key, source, value) => ({
   ...state,
   meta: {
@@ -53,13 +56,13 @@ const luggageReducer = (state = initialState, action) => {
   case actions.UPDATE_COLLECTION_SUCCESS:
     return { ...state, collections: { ...state.collections, [action.collectionName]: action.data } }
   case actions.START_SYNCING: {
-    const pending = (state.meta.pending[action.source] || 0) + 1
+    const pending = (getMeta(state, 'pending', action.source) || 0) + 1
     const started = setMeta(setMeta(state, 'pending', action.source, pending), 'syncing', action.source, true)
     return setMeta(started, 'errors', action.source, null)
   }
   case actions.FINISH_SYNCING: {
     // Operations of one type can overlap: syncing ends with the last of them
-    const pending = Math.max((state.meta.pending[action.source] || 0) - 1, 0)
+    const pending = Math.max((getMeta(state, 'pending', action.source) || 0) - 1, 0)
     return setMeta(setMeta(state, 'pending', action.source, pending), 'syncing', action.source, pending > 0)
   }
   default:
