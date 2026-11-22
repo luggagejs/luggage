@@ -12,6 +12,8 @@ const initialState = {
       [actions.UPDATE_RECORD]: false,
       [actions.DELETE_RECORD]: false
     },
+    // Number of running operations of each type; syncing is true while it is above 0
+    pending: {},
     // The last error of each operation as { name, message, collectionName }
     errors: {}
   }
@@ -50,10 +52,16 @@ const luggageReducer = (state = initialState, action) => {
     return setMeta({ ...state, user: { ...state.user, ...action.data } }, 'errors', actions.AUTHENTICATE_USER, null)
   case actions.UPDATE_COLLECTION_SUCCESS:
     return { ...state, collections: { ...state.collections, [action.collectionName]: action.data } }
-  case actions.START_SYNCING:
-    return setMeta(setMeta(state, 'syncing', action.source, true), 'errors', action.source, null)
-  case actions.FINISH_SYNCING:
-    return setMeta(state, 'syncing', action.source, false)
+  case actions.START_SYNCING: {
+    const pending = (state.meta.pending[action.source] || 0) + 1
+    const started = setMeta(setMeta(state, 'pending', action.source, pending), 'syncing', action.source, true)
+    return setMeta(started, 'errors', action.source, null)
+  }
+  case actions.FINISH_SYNCING: {
+    // Operations of one type can overlap: syncing ends with the last of them
+    const pending = Math.max((state.meta.pending[action.source] || 0) - 1, 0)
+    return setMeta(setMeta(state, 'pending', action.source, pending), 'syncing', action.source, pending > 0)
+  }
   default:
     return state
   }

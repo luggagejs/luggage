@@ -54,7 +54,9 @@ state.luggage = {
   collections: { articles: [/* records */] },
   user: { authenticated: true },
   meta: {
+    // true while at least one operation of the type runs; pending counts them
     syncing: { '@@luggage/FETCH_COLLECTION': false, /* ... */ },
+    pending: { '@@luggage/ADD_RECORD': 0, /* ... */ },
     errors: { '@@luggage/UPDATE_RECORD': { name: 'ConflictError', message: '...', collectionName: 'articles' } }
   }
 }

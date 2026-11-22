@@ -175,6 +175,29 @@ describe('luggageMiddleware', () => {
       expect(store.getState().luggage.collections.quotes).toEqual([{ id: 2, quote: 'b' }])
     })
 
+    it('keeps ADD_RECORD syncing while a second add waits in the queue', async () => {
+      const store = await loadedStore()
+      const file = backend.collection('quotes')
+      const write = file.write.bind(file)
+      const writes = []
+      file.write = (...args) => new Promise(resolve => writes.push(() => resolve(write(...args))))
+      const syncing = () => store.getState().luggage.meta.syncing['@@luggage/ADD_RECORD']
+
+      store.dispatch(addRecord('quotes', { id: 3 }))
+      store.dispatch(addRecord('quotes', { id: 4 }))
+      await flush()
+      writes.shift()()
+      await flush()
+
+      expect(store.actions.filter(a => a.type === ADD_RECORD_SUCCESS)).toHaveLength(1)
+      expect(syncing()).toBe(true)
+
+      writes.shift()()
+      await flush()
+      expect(store.actions.filter(a => a.type === ADD_RECORD_SUCCESS)).toHaveLength(2)
+      expect(syncing()).toBe(false)
+    })
+
     it('does not leave subscriptions after update and delete', async () => {
       const createCollection = luggage.collection.bind(luggage)
       let collection

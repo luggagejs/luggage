@@ -35,4 +35,17 @@ describe('luggageReducer', () => {
     expect(luggageReducer(syncing, finishSyncing('@@luggage/ADD_RECORD')).meta.syncing['@@luggage/ADD_RECORD'])
       .toBe(false)
   })
+
+  it('keeps syncing until the last of overlapping operations of one type finishes', () => {
+    const source = '@@luggage/ADD_RECORD'
+    const two = [startSyncing(source), startSyncing(source)].reduce(luggageReducer, initial)
+    const one = luggageReducer(two, finishSyncing(source))
+    const none = luggageReducer(one, finishSyncing(source))
+
+    expect(one.meta.syncing[source]).toBe(true)
+    expect(one.meta.pending[source]).toEqual(1)
+    expect(none.meta.syncing[source]).toBe(false)
+    expect(none.meta.pending[source]).toEqual(0)
+    expect(luggageReducer(none, finishSyncing(source)).meta.pending[source]).toEqual(0)
+  })
 })
