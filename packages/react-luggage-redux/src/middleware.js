@@ -74,13 +74,6 @@ const luggageMiddleware = ({ authenticate, luggage, createBackend } = {}) => {
       return collection
     }
 
-    // A record that nobody listens to does not subscribe to the collection,
-    // dispose() makes sure nothing is left after the operation
-    const withRecord = (collection, recordId, operation) => {
-      const record = collection.find(recordId)
-      return operation(record).finally(() => record.dispose())
-    }
-
     const handle = createHandler({
       [FETCH_COLLECTION]: ({ action }) => {
         if (!getState().luggage.user.authenticated) {
@@ -142,10 +135,7 @@ const luggageMiddleware = ({ authenticate, luggage, createBackend } = {}) => {
 
         run(
           UPDATE_RECORD,
-          () => {
-            const collection = loadedCollection(collectionName)
-            return withRecord(collection, recordId, record => record.update(transform))
-          },
+          () => loadedCollection(collectionName).find(recordId).update(transform),
           ([newRecord, oldRecord, newCollection]) => {
             dispatch(updateRecordSuccess(collectionName, newRecord, oldRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection))
@@ -159,10 +149,7 @@ const luggageMiddleware = ({ authenticate, luggage, createBackend } = {}) => {
 
         run(
           DELETE_RECORD,
-          () => {
-            const collection = loadedCollection(collectionName)
-            return withRecord(collection, recordId, record => record.delete())
-          },
+          () => loadedCollection(collectionName).find(recordId).delete(),
           ([deletedRecord, newCollection]) => {
             dispatch(deleteRecordSuccess(collectionName, deletedRecord))
             dispatch(updateCollectionSuccess(collectionName, newCollection))
