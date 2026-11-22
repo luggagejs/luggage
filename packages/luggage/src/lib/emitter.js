@@ -21,6 +21,11 @@ export default class Emitter {
   }
 
   off(event, listener) {
+    // Like Node's EventEmitter: without a listener nothing would say which one to remove
+    if (typeof listener !== 'function') {
+      throw new TypeError('The "listener" argument must be of type function')
+    }
+
     const listeners = this.#listeners.get(event)
 
     if (listeners) {

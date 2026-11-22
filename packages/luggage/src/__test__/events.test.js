@@ -54,6 +54,23 @@ describe('data events', () => {
     expect(collection.listenerCount('data')).toEqual(0)
   })
 
+  it('off() without a listener throws and removes nothing, like Node EventEmitter', () => {
+    const listener = jest.fn()
+    const onceListener = jest.fn()
+    collection.on('data', listener).once('data', onceListener)
+
+    expect(() => collection.off('data')).toThrow(TypeError)
+    expect(collection.listenerCount('data')).toEqual(2)
+  })
+
+  it('off() without a listener keeps a derived collection subscribed to its source', () => {
+    const filtered = collection.where({ author: 'x' })
+    filtered.on('data', () => null)
+
+    expect(() => filtered.off('data')).toThrow(TypeError)
+    expect(collection.listenerCount('data')).toEqual(1)
+  })
+
   it('removeListener() is an alias of off()', () => {
     const listener = () => null
     collection.on('data', listener).removeListener('data', listener)
