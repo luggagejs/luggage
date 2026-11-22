@@ -50,12 +50,14 @@ class Collections {
     }).then(() => this.getInstance(name))
   }
 
+  // The file goes first: if deleting it fails, the collection stays listed.
+  // Otherwise create() would find the unlisted file and keep its records.
   delete(name) {
-    return this.updateMeta(meta => ({
-      ...meta,
-      [collectionsList]: (meta[collectionsList] || []).filter(n => n !== name)
-    }))
-      .then(() => this.getInstance(name).delete())
+    return this.getInstance(name).delete()
+      .then(() => this.updateMeta(meta => ({
+        ...meta,
+        [collectionsList]: (meta[collectionsList] || []).filter(n => n !== name)
+      })))
       .then(() => this.getInstance(name))
   }
 
