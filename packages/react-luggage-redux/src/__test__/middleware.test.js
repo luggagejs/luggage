@@ -129,6 +129,16 @@ describe('luggageMiddleware', () => {
       expect(store.getState().luggage.user.authenticated).toBe(false)
     })
 
+    it('dispatches AUTHENTICATE_USER_FAILURE when dispatching the success throws', async () => {
+      const store = createStore(luggageMiddleware({ luggage, authenticate }), { failOn: UPDATE_USER_SUCCESS })
+      store.dispatch(fetchCollection('quotes'))
+      await flush()
+
+      const failure = store.actions.find(a => a.type === AUTHENTICATE_USER_FAILURE)
+      expect(failure.error.message).toEqual(`reducer failed on ${UPDATE_USER_SUCCESS}`)
+      expect(store.actions.map(a => a.type)).not.toContain(UPDATE_COLLECTION_SUCCESS)
+    })
+
     it('clears the authentication error when a later authentication succeeds', async () => {
       authenticate.mockImplementationOnce(() => Promise.reject(new Error('offline')))
       const store = createStore(luggageMiddleware({ luggage, authenticate }))

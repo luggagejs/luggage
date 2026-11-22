@@ -35,4 +35,4 @@ yarn test
 yarn lint
 ```
 
-Node 20 or later. The packages are yarn workspaces and are published as ES modules without a build step.
+Node 22 or later. The packages are yarn workspaces and are published as ES modules without a build step.

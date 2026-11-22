@@ -5,7 +5,7 @@ collections stay in `/<collection>.json` and `/<name>/.meta.json`, so existing d
 
 ## Requirements
 
-- The packages are published as ES modules without a build step. Use Node 20+ or a bundler
+- The packages are published as ES modules without a build step. Use Node 22+ or a bundler
   (webpack 5, Vite, Rollup, esbuild, shadow-cljs). The browser bundle `@luggage/core/browser/index.js`
   is gone.
 - `dropbox` is now a peer dependency, version 10. Install it yourself if you use Dropbox:

@@ -2,11 +2,16 @@ import { Dropbox, DropboxAuth } from 'dropbox'
 
 export const REFRESH_TOKEN_KEY = 'luggageRefreshToken'
 export const CODE_VERIFIER_KEY = 'luggageCodeVerifier'
+export const STATE_KEY = 'luggageOAuthState'
 
 const OAUTH_PARAMS = ['code', 'state', 'error', 'error_description']
 
 // Dropbox answers a refresh with a revoked or expired refresh token with 400 invalid_grant
 const isInvalidGrant = error => error?.status === 400 && error?.error?.error === 'invalid_grant'
+
+// Sent to Dropbox and checked on return: only a code for a sign in started here is exchanged
+const randomState = () =>
+  Array.from(globalThis.crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('')
 
 // Dropbox sign in with the OAuth 2 code flow and PKCE.
 // The refresh token is kept in `storage` (sessionStorage by default);
@@ -64,7 +69,7 @@ class SessionManager {
     }
 
     if (params.has('code')) {
-      return this.exchangeCode(params.get('code'))
+      return this.exchangeCode(params.get('code'), params.get('state'))
     }
 
     return this.redirect().then(() => false)
@@ -88,39 +93,52 @@ class SessionManager {
     )
   }
 
-  exchangeCode(code) {
+  exchangeCode(code, state) {
+    const expectedState = this.storage.getItem(STATE_KEY)
     const codeVerifier = this.storage.getItem(CODE_VERIFIER_KEY)
 
-    if (codeVerifier) {
-      this.auth.setCodeVerifier(codeVerifier)
-    }
-
-    return this.auth.getAccessTokenFromCode(this.redirectUri, code).then(({ result }) => {
-      this.storage.setItem(REFRESH_TOKEN_KEY, result.refresh_token)
-      this.storage.removeItem(CODE_VERIFIER_KEY)
-      this.auth.setRefreshToken(result.refresh_token)
-      this.auth.setAccessToken(result.access_token)
-      this.auth.setAccessTokenExpiresAt(new Date(Date.now() + result.expires_in * 1000))
-      this.removeOAuthParamsFromUrl()
-      return true
-    }, error => {
-      // A code can be exchanged only once: drop it, so the next authenticate() starts a new sign in
-      this.forgetSignInAttempt()
-      throw error
-    })
+    // In a promise: the SDK throws synchronously when it has no code verifier
+    return Promise.resolve()
+      .then(() => {
+        if (!expectedState || state !== expectedState) {
+          throw new Error('SessionManager: the code in the url does not answer a sign in started here')
+        }
+        if (codeVerifier) {
+          this.auth.setCodeVerifier(codeVerifier)
+        }
+        return this.auth.getAccessTokenFromCode(this.redirectUri, code)
+      })
+      .then(({ result }) => {
+        this.storage.setItem(REFRESH_TOKEN_KEY, result.refresh_token)
+        this.storage.removeItem(CODE_VERIFIER_KEY)
+        this.storage.removeItem(STATE_KEY)
+        this.auth.setRefreshToken(result.refresh_token)
+        this.auth.setAccessToken(result.access_token)
+        this.auth.setAccessTokenExpiresAt(new Date(Date.now() + result.expires_in * 1000))
+        this.removeOAuthParamsFromUrl()
+        return true
+      }, error => {
+        // A code can be exchanged only once: drop it, so the next authenticate() starts a new sign in
+        this.forgetSignInAttempt()
+        throw error
+      })
   }
 
   redirect() {
+    const state = randomState()
+
     return this.auth
-      .getAuthenticationUrl(this.redirectUri, undefined, 'code', 'offline', undefined, undefined, true)
+      .getAuthenticationUrl(this.redirectUri, state, 'code', 'offline', undefined, undefined, true)
       .then(url => {
         this.storage.setItem(CODE_VERIFIER_KEY, this.auth.getCodeVerifier())
+        this.storage.setItem(STATE_KEY, state)
         this.location.assign(String(url))
       })
   }
 
   forgetSignInAttempt() {
     this.storage.removeItem(CODE_VERIFIER_KEY)
+    this.storage.removeItem(STATE_KEY)
     this.removeOAuthParamsFromUrl()
   }
 
@@ -141,6 +159,7 @@ class SessionManager {
   signOut() {
     this.storage.removeItem(REFRESH_TOKEN_KEY)
     this.storage.removeItem(CODE_VERIFIER_KEY)
+    this.storage.removeItem(STATE_KEY)
     this.auth.setRefreshToken(undefined)
     this.auth.setAccessToken(undefined)
     this.auth.setAccessTokenExpiresAt(undefined)

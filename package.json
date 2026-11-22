@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "clean-all": "rm -rf ./node_modules ./packages/*/node_modules ./packages/*/coverage",

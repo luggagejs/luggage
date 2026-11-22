@@ -1,7 +1,7 @@
 /* eslint max-nested-callbacks: 0 */
 import { jest } from '@jest/globals'
 import { Dropbox, DropboxAuth } from 'dropbox'
-import SessionManager, { REFRESH_TOKEN_KEY, CODE_VERIFIER_KEY } from '../index.js'
+import SessionManager, { REFRESH_TOKEN_KEY, CODE_VERIFIER_KEY, STATE_KEY } from '../index.js'
 
 const fakeAuth = () => ({
   getAuthenticationUrl: jest.fn(() => Promise.resolve('https://www.dropbox.com/oauth2/authorize?x=1')),
@@ -71,14 +71,24 @@ describe('SessionManager (PKCE)', () => {
       await expect(session.authenticate()).resolves.toBe(false)
 
       expect(auth.getAuthenticationUrl).toHaveBeenCalledWith(
-        'https://app.test/app', undefined, 'code', 'offline', undefined, undefined, true
+        'https://app.test/app', expect.stringMatching(/^[0-9a-f]{32}$/), 'code', 'offline', undefined, undefined, true
       )
       expect(location.assign).toHaveBeenCalledWith('https://www.dropbox.com/oauth2/authorize?x=1')
       expect(sessionStorage.getItem(CODE_VERIFIER_KEY)).toEqual('verifier')
+      expect(sessionStorage.getItem(STATE_KEY)).toEqual(auth.getAuthenticationUrl.mock.calls[0][1])
+    })
+
+    it('sends a new state on every sign in', async () => {
+      await session.authenticate()
+      await session.authenticate()
+
+      const [first, second] = auth.getAuthenticationUrl.mock.calls.map(call => call[1])
+      expect(first).not.toEqual(second)
     })
 
     it('exchanges the code from the redirect for tokens', async () => {
       sessionStorage.setItem(CODE_VERIFIER_KEY, 'verifier')
+      sessionStorage.setItem(STATE_KEY, 's')
       create('https://app.test/app?code=the-code&state=s&page=2#top')
 
       await expect(session.authenticate()).resolves.toBe(true)
@@ -88,12 +98,14 @@ describe('SessionManager (PKCE)', () => {
       expect(auth.setRefreshToken).toHaveBeenCalledWith('refresh')
       expect(sessionStorage.getItem(REFRESH_TOKEN_KEY)).toEqual('refresh')
       expect(sessionStorage.getItem(CODE_VERIFIER_KEY)).toBeNull()
+      expect(sessionStorage.getItem(STATE_KEY)).toBeNull()
       expect(history.replaceState).toHaveBeenCalledWith(null, '', '/app?page=2#top')
       expect(location.assign).not.toHaveBeenCalled()
     })
 
     it('exchanges the code once when called again before the exchange finished', async () => {
-      create('https://app.test/app?code=the-code')
+      sessionStorage.setItem(STATE_KEY, 's')
+      create('https://app.test/app?code=the-code&state=s')
 
       await expect(Promise.all([session.authenticate(), session.authenticate()])).resolves.toEqual([true, true])
       expect(auth.getAccessTokenFromCode).toHaveBeenCalledTimes(1)
@@ -141,6 +153,7 @@ describe('SessionManager (PKCE)', () => {
 
     it('rejects when the code exchange fails, and the next call starts a new sign in', async () => {
       sessionStorage.setItem(CODE_VERIFIER_KEY, 'verifier')
+      sessionStorage.setItem(STATE_KEY, 's')
       auth.getAccessTokenFromCode.mockRejectedValue(new Error('invalid_grant'))
       create('https://app.test/app?code=old&state=s')
 
@@ -154,6 +167,42 @@ describe('SessionManager (PKCE)', () => {
       expect(location.assign).toHaveBeenCalledTimes(1)
     })
 
+    it('rejects a code when no code verifier is stored, and the next call starts a new sign in', async () => {
+      // The real SDK throws synchronously without a code verifier
+      auth.getAccessTokenFromCode.mockImplementation(() => {
+        throw new Error('You must use PKCE when generating the authorization URL')
+      })
+      sessionStorage.setItem(STATE_KEY, 's')
+      create('https://app.test/app?code=c&state=s&page=2')
+
+      await expect(session.authenticate()).rejects.toThrow('You must use PKCE')
+      expect(sessionStorage.getItem(STATE_KEY)).toBeNull()
+      expect(history.replaceState).toHaveBeenCalledWith(null, '', '/app?page=2')
+
+      await expect(session.authenticate()).resolves.toBe(false)
+      expect(location.assign).toHaveBeenCalledTimes(1)
+    })
+
+    it.each([
+      ['no state was stored', null, 'https://app.test/app?code=c&state=s&page=2'],
+      ['the state does not match', 'other', 'https://app.test/app?code=c&state=s&page=2'],
+      ['the url has no state', 's', 'https://app.test/app?code=c&page=2']
+    ])('does not exchange a code when %s, and the next call starts a new sign in', async (_, stored, url) => {
+      sessionStorage.setItem(CODE_VERIFIER_KEY, 'verifier')
+      if (stored) {
+        sessionStorage.setItem(STATE_KEY, stored)
+      }
+      create(url)
+
+      await expect(session.authenticate()).rejects.toThrow(/does not answer a sign in started here/)
+      expect(auth.getAccessTokenFromCode).not.toHaveBeenCalled()
+      expect(history.replaceState).toHaveBeenCalledWith(null, '', '/app?page=2')
+      expect(sessionStorage.getItem(CODE_VERIFIER_KEY)).toBeNull()
+
+      await expect(session.authenticate()).resolves.toBe(false)
+      expect(location.assign).toHaveBeenCalledTimes(1)
+    })
+
     it('can keep the session in another storage', async () => {
       const storage = new Map()
       const mapStorage = {
@@ -161,7 +210,8 @@ describe('SessionManager (PKCE)', () => {
         setItem: (k, v) => storage.set(k, v),
         removeItem: k => storage.delete(k)
       }
-      create('https://app.test/app?code=c', { storage: mapStorage })
+      mapStorage.setItem(STATE_KEY, 's')
+      create('https://app.test/app?code=c&state=s', { storage: mapStorage })
       await session.authenticate()
 
       expect(storage.get(REFRESH_TOKEN_KEY)).toEqual('refresh')

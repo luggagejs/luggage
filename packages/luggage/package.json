@@ -17,7 +17,7 @@
   ],
   "sideEffects": false,
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",

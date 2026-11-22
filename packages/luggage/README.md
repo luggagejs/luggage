@@ -15,7 +15,7 @@ Upgrading from 2.x? See the [migration guide](../../MIGRATION.md).
 yarn add @luggage/core dropbox   # dropbox is needed only for the Dropbox backend
 ```
 
-The packages are published as ES modules and need Node 20+ or a bundler.
+The packages are published as ES modules and need Node 22+ or a bundler.
 
 ### Usage
 

@@ -100,7 +100,9 @@ const luggageMiddleware = ({ authenticate, luggage, createBackend } = {}) => {
             .then(authenticated => {
               dispatch(updateUserSuccess({ authenticated: Boolean(authenticated) }))
               return Boolean(authenticated)
-            }, error => {
+            })
+            // Like run(): an error thrown while the success is dispatched is a failure too
+            .catch(error => {
               dispatch(authenticateUserFailure(error))
               return false
             })
