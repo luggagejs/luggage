@@ -102,6 +102,13 @@ describe('Collection', () => {
         let onlyJohnsQuotes = collection.where(filters.authorJohnObject)
         expect(onlyJohnsQuotes.filter).toBeInstanceOf(Function)
       })
+
+      ;[3, 'get', null, undefined, ['get']].forEach(filter => {
+        it(`throws a TypeError for ${JSON.stringify(filter)} instead of matching every item`, () => {
+          expect(() => collection.where(filter)).toThrow(TypeError)
+          expect(() => collection.find(filter)).toThrow(TypeError)
+        })
+      })
     })
 
     describe('Filterable#find', () => {

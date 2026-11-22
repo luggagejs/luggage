@@ -7,6 +7,14 @@ function wrapFilter(filter) {
     return filter
   }
 
+  // Object.keys() of a number or a string would make a filter that matches every item
+  // (or the wrong ones): find(3) would update the first record
+  if (filter === null || typeof filter !== 'object' || Array.isArray(filter)) {
+    throw new TypeError(
+      `A filter must be a function or an object like { id: 1 }, got ${Array.isArray(filter) ? 'array' : String(filter)}`
+    )
+  }
+
   return (item) => {
     return Object.keys(filter).every((k) => filter[k] === item[k])
   }

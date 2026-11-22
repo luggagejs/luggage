@@ -221,6 +221,15 @@ describe('luggageMiddleware', () => {
       expect(store.actions.find(a => a.type === UPDATE_RECORD_FAILURE).error.name).toEqual('RecordNotFoundError')
     })
 
+    it('does not delete the first record when the record id is not a filter', async () => {
+      const store = await loadedStore()
+      store.dispatch(deleteRecord('quotes', 2))
+      await flush()
+
+      expect(store.actions.find(a => a.type === DELETE_RECORD_FAILURE).error).toBeInstanceOf(TypeError)
+      expect(await luggage.collection('quotes').read()).toEqual([{ id: 1, quote: 'a' }, { id: 2, quote: 'b' }])
+    })
+
     it('dispatches DELETE_RECORD_FAILURE with the error', async () => {
       const store = await loadedStore()
       store.dispatch(deleteRecord('quotes', { id: 42 }))
