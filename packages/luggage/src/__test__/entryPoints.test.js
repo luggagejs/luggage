@@ -19,7 +19,8 @@ describe('entry points', () => {
   })
 
   it('exports DummyBackend from @luggage/core/dummy', async () => {
-    const { default: DummyBackend } = await import('@luggage/core/dummy')
+    const { default: Default, DummyBackend } = await import('@luggage/core/dummy')
+    expect(DummyBackend).toBe(Default)
     expect(DummyBackend).toBeInstanceOf(Function)
   })
 })

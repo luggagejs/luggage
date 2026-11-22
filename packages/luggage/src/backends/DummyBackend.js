@@ -100,3 +100,5 @@ export default class DummyBackend {
     return this.collectionsMock[name]
   }
 }
+
+export { DummyBackend }
