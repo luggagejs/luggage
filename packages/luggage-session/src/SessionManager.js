@@ -3,6 +3,11 @@ import { Dropbox, DropboxAuth } from 'dropbox'
 export const REFRESH_TOKEN_KEY = 'luggageRefreshToken'
 export const CODE_VERIFIER_KEY = 'luggageCodeVerifier'
 
+const OAUTH_PARAMS = ['code', 'state', 'error', 'error_description']
+
+// Dropbox answers a refresh with a revoked or expired refresh token with 400 invalid_grant
+const isInvalidGrant = error => error?.status === 400 && error?.error?.error === 'invalid_grant'
+
 // Dropbox sign in with the OAuth 2 code flow and PKCE.
 // The refresh token is kept in `storage` (sessionStorage by default);
 // the Dropbox client refreshes the short-lived access token by itself.
@@ -47,13 +52,14 @@ class SessionManager {
     const refreshToken = this.storage.getItem(REFRESH_TOKEN_KEY)
 
     if (refreshToken) {
-      this.auth.setRefreshToken(refreshToken)
-      return Promise.resolve(true)
+      return this.useRefreshToken(refreshToken)
     }
 
     const params = new URLSearchParams(this.location.search)
 
+    // The failed answer is removed from the url, so the next authenticate() starts a new sign in
     if (params.has('error')) {
+      this.forgetSignInAttempt()
       return Promise.reject(new Error(params.get('error_description') || params.get('error')))
     }
 
@@ -62,6 +68,24 @@ class SessionManager {
     }
 
     return this.redirect().then(() => false)
+  }
+
+  // Checks the stored refresh token by getting an access token with it.
+  // A revoked or expired token is forgotten and a new sign in starts;
+  // other errors (no network) reject and keep the token.
+  useRefreshToken(refreshToken) {
+    this.auth.setRefreshToken(refreshToken)
+
+    return this.auth.checkAndRefreshAccessToken().then(
+      () => true,
+      error => {
+        if (!isInvalidGrant(error)) {
+          throw error
+        }
+        this.signOut()
+        return this.redirect().then(() => false)
+      }
+    )
   }
 
   exchangeCode(code) {
@@ -77,8 +101,12 @@ class SessionManager {
       this.auth.setRefreshToken(result.refresh_token)
       this.auth.setAccessToken(result.access_token)
       this.auth.setAccessTokenExpiresAt(new Date(Date.now() + result.expires_in * 1000))
-      this.removeCodeFromUrl()
+      this.removeOAuthParamsFromUrl()
       return true
+    }, error => {
+      // A code can be exchanged only once: drop it, so the next authenticate() starts a new sign in
+      this.forgetSignInAttempt()
+      throw error
     })
   }
 
@@ -91,10 +119,14 @@ class SessionManager {
       })
   }
 
-  removeCodeFromUrl() {
+  forgetSignInAttempt() {
+    this.storage.removeItem(CODE_VERIFIER_KEY)
+    this.removeOAuthParamsFromUrl()
+  }
+
+  removeOAuthParamsFromUrl() {
     const params = new URLSearchParams(this.location.search)
-    params.delete('code')
-    params.delete('state')
+    OAUTH_PARAMS.forEach(name => params.delete(name))
     const search = params.toString()
 
     this.history.replaceState(null, '', `${this.location.pathname}${search ? `?${search}` : ''}${this.location.hash}`)

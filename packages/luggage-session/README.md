@@ -32,6 +32,13 @@ refreshes the short-lived access token by itself.
 
 `session.signOut()` forgets the refresh token.
 
+`authenticate()` rejects when the sign in fails: the user denied access on the Dropbox page, or the code
+from the redirect could not be exchanged. The failed answer is removed from the url, so the next
+`authenticate()` starts a new sign in. A stored refresh token is checked on every `authenticate()` that
+needs a new access token; when Dropbox says it is revoked or expired, it is forgotten and the user is sent
+to sign in again. If the check fails for another reason (no network), `authenticate()` rejects and the
+token is kept.
+
 | Option        | Default          |                                        |
 | ------------- | ---------------- | -------------------------------------- |
 | `clientId`    | required         | Dropbox app key                        |
