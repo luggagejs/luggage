@@ -30,7 +30,7 @@ The refresh token is kept in `sessionStorage`, so the user signs in again in a n
 Pass `storage: localStorage` to keep the session between visits. The client returned by `getClient()`
 refreshes the short-lived access token by itself.
 
-`session.signOut()` forgets the refresh token.
+`session.signOut()` forgets the tokens; Dropbox clients already returned by `getClient()` stop working too.
 
 `authenticate()` rejects when the sign in fails: the user denied access on the Dropbox page, or the code
 from the redirect could not be exchanged. The failed answer is removed from the url, so the next

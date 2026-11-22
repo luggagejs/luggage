@@ -178,6 +178,23 @@ describe('SessionManager (PKCE)', () => {
   })
 
   describe('signOut', () => {
+    it('stops the clients returned before by getClient()', async () => {
+      const fetch = jest.fn(() => Promise.resolve({
+        ok: true, status: 200, headers: { get: () => 'application/json' }, text: () => Promise.resolve('{}')
+      }))
+      sessionStorage.setItem(REFRESH_TOKEN_KEY, 'stored')
+      auth = new DropboxAuth({ clientId: 'app-key', fetch, refreshToken: 'stored', accessToken: 'access' })
+      auth.setAccessTokenExpiresAt(new Date(Date.now() + 3600 * 1000))
+      create()
+      const client = session.getClient()
+
+      session.signOut()
+
+      expect(auth.getRefreshToken()).toBeUndefined()
+      expect(auth.getAccessToken()).toBeUndefined()
+      expect(client.auth).toBe(auth)
+    })
+
     it('forgets the refresh token', async () => {
       sessionStorage.setItem(REFRESH_TOKEN_KEY, 'stored')
       session.signOut()

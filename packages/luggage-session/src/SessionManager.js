@@ -137,9 +137,13 @@ class SessionManager {
     return new Dropbox({ auth: this.auth })
   }
 
+  // Clients from getClient() share this.auth, so they stop working too
   signOut() {
     this.storage.removeItem(REFRESH_TOKEN_KEY)
     this.storage.removeItem(CODE_VERIFIER_KEY)
+    this.auth.setRefreshToken(undefined)
+    this.auth.setAccessToken(undefined)
+    this.auth.setAccessTokenExpiresAt(undefined)
   }
 }
 
