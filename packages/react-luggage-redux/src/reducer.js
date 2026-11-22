@@ -46,7 +46,8 @@ const luggageReducer = (state = initialState, action) => {
 
   switch (action.type) {
   case actions.UPDATE_USER_SUCCESS:
-    return { ...state, user: { ...state.user, ...action.data } }
+    // authenticate() succeeded, so an earlier authentication error is no longer current
+    return setMeta({ ...state, user: { ...state.user, ...action.data } }, 'errors', actions.AUTHENTICATE_USER, null)
   case actions.UPDATE_COLLECTION_SUCCESS:
     return { ...state, collections: { ...state.collections, [action.collectionName]: action.data } }
   case actions.START_SYNCING:

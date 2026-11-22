@@ -1,4 +1,6 @@
-import { luggageReducer, updateCollectionSuccess, startSyncing, finishSyncing, updateUserSuccess } from '../index.js'
+import {
+  luggageReducer, updateCollectionSuccess, startSyncing, finishSyncing, updateUserSuccess, authenticateUserFailure
+} from '../index.js'
 
 describe('luggageReducer', () => {
   const initial = luggageReducer(undefined, { type: '@@INIT' })
@@ -17,6 +19,14 @@ describe('luggageReducer', () => {
   it('merges user data', () => {
     const state = luggageReducer(initial, updateUserSuccess({ authenticated: true }))
     expect(state.user).toEqual({ authenticated: true })
+  })
+
+  it('forgets the authentication error when the user is updated after authentication', () => {
+    const failed = luggageReducer(initial, authenticateUserFailure(new Error('offline')))
+    expect(failed.meta.errors['@@luggage/AUTHENTICATE_USER']).toEqual({ name: 'Error', message: 'offline' })
+
+    const state = luggageReducer(failed, updateUserSuccess({ authenticated: true }))
+    expect(state.meta.errors['@@luggage/AUTHENTICATE_USER']).toBeNull()
   })
 
   it('tracks syncing', () => {

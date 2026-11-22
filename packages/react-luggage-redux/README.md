@@ -76,4 +76,5 @@ Every failed operation dispatches a failure action with the error, then `FINISH_
 
 `error` is the `Error` the operation was rejected with (for example `ConflictError` or `RecordNotFoundError`
 from `@luggage/core`). The reducer keeps `{ name, message }` of the last error of each operation in
-`meta.errors` until the operation starts again.
+`meta.errors` until the operation starts again; the authentication error is kept until authentication
+succeeds (`UPDATE_USER_SUCCESS`).
