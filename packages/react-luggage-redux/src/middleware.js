@@ -55,17 +55,15 @@ const luggageMiddleware = ({ authenticate, luggage, createBackend } = {}) => {
       return luggagePromise
     }
 
+    // An error thrown while the success is dispatched (a reducer, a subscriber) is reported
+    // as the failure of the operation too, and syncing always finishes
     const run = (source, operation, onSuccess, onFailure) => {
       dispatch(startSyncing(source))
       return Promise.resolve()
         .then(operation)
-        .then(result => {
-          onSuccess(result)
-          dispatch(finishSyncing(source))
-        }, error => {
-          dispatch(onFailure(error))
-          dispatch(finishSyncing(source))
-        })
+        .then(onSuccess)
+        .catch(error => dispatch(onFailure(error)))
+        .finally(() => dispatch(finishSyncing(source)))
     }
 
     const loadedCollection = name => {

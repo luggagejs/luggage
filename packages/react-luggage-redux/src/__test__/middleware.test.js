@@ -16,13 +16,15 @@ import {
   DELETE_RECORD_FAILURE,
   AUTHENTICATE_USER_FAILURE,
   UPDATE_COLLECTION_SUCCESS,
-  UPDATE_USER_SUCCESS
+  UPDATE_USER_SUCCESS,
+  ADD_RECORD_SUCCESS
 } from '../index.js'
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0))
 
 // A tiny redux store: reducer + middleware, records dispatched actions
-const createStore = middleware => {
+// failOn: an action type the reducer throws on
+const createStore = (middleware, { failOn } = {}) => {
   let state = { luggage: luggageReducer(undefined, { type: '@@INIT' }) }
   const actions = []
   let dispatch = null
@@ -31,6 +33,9 @@ const createStore = middleware => {
     dispatch: action => dispatch(action)
   }
   const next = action => {
+    if (action.type === failOn) {
+      throw new Error(`reducer failed on ${action.type}`)
+    }
     actions.push(action)
     state = { luggage: luggageReducer(state.luggage, action) }
     return action
@@ -123,6 +128,18 @@ describe('luggageMiddleware', () => {
       expect(failure.error.message).toEqual('denied')
       expect(store.getState().luggage.user.authenticated).toBe(false)
     })
+
+    it('clears the authentication error when a later authentication succeeds', async () => {
+      authenticate.mockImplementationOnce(() => Promise.reject(new Error('offline')))
+      const store = createStore(luggageMiddleware({ luggage, authenticate }))
+      store.dispatch(authenticateUser())
+      await flush()
+      expect(store.getState().luggage.meta.errors['@@luggage/AUTHENTICATE_USER']).toMatchObject({ message: 'offline' })
+
+      store.dispatch(authenticateUser())
+      await flush()
+      expect(store.getState().luggage.meta.errors['@@luggage/AUTHENTICATE_USER']).toBeNull()
+    })
   })
 
   describe('state', () => {
@@ -210,6 +227,18 @@ describe('luggageMiddleware', () => {
       await flush()
 
       expect(store.actions.find(a => a.type === DELETE_RECORD_FAILURE).error.name).toEqual('RecordNotFoundError')
+    })
+
+    it('reports an error thrown while the success is dispatched and finishes syncing', async () => {
+      const store = createStore(luggageMiddleware({ luggage, authenticate }), { failOn: ADD_RECORD_SUCCESS })
+      store.dispatch(fetchCollection('quotes'))
+      await flush()
+      store.dispatch(addRecord('quotes', { id: 3 }))
+      await flush()
+
+      expect(store.actions.find(a => a.type === ADD_RECORD_FAILURE).error.message)
+        .toEqual(`reducer failed on ${ADD_RECORD_SUCCESS}`)
+      expect(store.getState().luggage.meta.syncing['@@luggage/ADD_RECORD']).toBe(false)
     })
 
     ;[
