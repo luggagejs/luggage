@@ -87,19 +87,19 @@ describe('Collection', () => {
 
     describe('Filterable#where', () => {
       it('returns a new Filterable instance', () => {
-        let onlyWithQuotes = collection.where(filters.onlyQuotes)
+        const onlyWithQuotes = collection.where(filters.onlyQuotes)
 
         expect(onlyWithQuotes).not.toEqual(collection)
         expect(onlyWithQuotes).toBeInstanceOf(Filterable)
       })
 
       it('adds a filter to filters prop', () => {
-        let onlyWithQuotes = collection.where(filters.onlyQuotes)
+        const onlyWithQuotes = collection.where(filters.onlyQuotes)
         expect(onlyWithQuotes.filter).toEqual(filters.onlyQuotes)
       })
 
       it('converts object filters to functions', () => {
-        let onlyJohnsQuotes = collection.where(filters.authorJohnObject)
+        const onlyJohnsQuotes = collection.where(filters.authorJohnObject)
         expect(onlyJohnsQuotes.filter).toBeInstanceOf(Function)
       })
 
@@ -143,7 +143,7 @@ describe('Collection', () => {
       })
 
       it('uses objects as filters', async () => {
-        let onlyJohnsQuotes = collection.where(filters.authorJohnObject)
+        const onlyJohnsQuotes = collection.where(filters.authorJohnObject)
         const data = await onlyJohnsQuotes.read()
 
         expect(data).toEqual([
@@ -154,7 +154,7 @@ describe('Collection', () => {
 
       describe('Filterable as EventEmitter', () => {
         it('emits data event after collection read', async () => {
-          let onlyQuotes = collection.where(filters.onlyQuotes)
+          const onlyQuotes = collection.where(filters.onlyQuotes)
           const cb = jest.fn()
           onlyQuotes.on('data', cb)
 
@@ -167,7 +167,7 @@ describe('Collection', () => {
         })
 
         it('emits with correct payload when chained', async () => {
-          let johnsQuotes = collection
+          const johnsQuotes = collection
             .where(filters.onlyQuotes)
             .and(filters.authorJohn)
 
