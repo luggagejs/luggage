@@ -1,7 +1,12 @@
-export { default } from './Luggage'
-export { default as Luggage } from './Luggage'
-export { default as DropboxXMLHttpBackend } from './backends/DropboxXMLHttpBackend'
-export { default as DropboxBackend } from './backends/DropboxBackend'
-export { default as DropboxClientBackend } from './backends/DropboxClientBackend'
-export { default as DummyBackend } from './backends/DummyBackend'
-export { default as GoogleDriveBackend } from './backends/GoogleDriveBackend'
+// Backends have their own entry points, so that an application bundles only the one it uses:
+//   @luggage/core/dropbox, @luggage/core/google-drive, @luggage/core/dummy
+export { default } from './Luggage.js'
+export { default as Luggage } from './Luggage.js'
+export { default as Collection } from './Collection/index.js'
+export { default as Collections, metaProperties } from './Collections/index.js'
+export {
+  ConflictError,
+  RecordNotFoundError,
+  CollectionExistsError,
+  ParseError
+} from './lib/errors.js'

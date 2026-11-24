@@ -1,4 +1,5 @@
-module.exports = {
-  verbose: true,
-  testURL: "http://localhost/"
+export default {
+  displayName: 'core',
+  testEnvironment: 'node',
+  transform: {}
 }

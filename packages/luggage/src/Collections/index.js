@@ -1,2 +1,1 @@
-export { default } from './Collections'
-export { metaProperties } from './Collections'
+export { default, metaProperties } from './Collections.js'

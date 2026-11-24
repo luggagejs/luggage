@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { lens } from 'lorgnette'
-import { Luggage, DropboxBackend } from '@luggage/core'
+import { Luggage, CollectionExistsError } from '@luggage/core'
+import { DropboxBackend } from '@luggage/core/dropbox'
 import './App.css'
 
 const token = "<your dropbox client token>"
@@ -76,6 +77,11 @@ const Folders = () => {
     if (name && name.length > 0) {
       collections.create(name)
         .then(() => { setColls([...colls, { name }]) })
+        .catch(error => {
+          window.alert(error instanceof CollectionExistsError
+            ? `Folder "${name}" already exists`
+            : `Could not create folder "${name}": ${error.message}`)
+        })
 
       addFolderEl.current.value = ''
     }

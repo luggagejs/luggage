@@ -1,8 +1,9 @@
+import { jest } from '@jest/globals'
 /* eslint max-nested-callbacks: 0 */
 
-import DropboxBackend from '../backends/DummyBackend'
-import Collection from '../Collection'
-import Filterable from '../traits/Filterable'
+import DropboxBackend from '../backends/DummyBackend.js'
+import Collection from '../Collection/index.js'
+import Filterable from '../traits/Filterable.js'
 
 describe('Collection', () => {
   let collection
@@ -100,6 +101,13 @@ describe('Collection', () => {
       it('converts object filters to functions', () => {
         let onlyJohnsQuotes = collection.where(filters.authorJohnObject)
         expect(onlyJohnsQuotes.filter).toBeInstanceOf(Function)
+      })
+
+      ;[3, 'get', null, undefined, ['get']].forEach(filter => {
+        it(`throws a TypeError for ${JSON.stringify(filter)} instead of matching every item`, () => {
+          expect(() => collection.where(filter)).toThrow(TypeError)
+          expect(() => collection.find(filter)).toThrow(TypeError)
+        })
       })
     })
 

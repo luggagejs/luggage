@@ -6,7 +6,7 @@ import {
   findOrCreateFolderWithParent,
   createFile,
   fileIdByNameAndParent
-} from './utils'
+} from './utils.js'
 
 class GoogleDriveCollection {
   constructor(name, backend) {

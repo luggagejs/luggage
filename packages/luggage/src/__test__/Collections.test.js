@@ -1,8 +1,9 @@
 /* eslint max-nested-callbacks: 0 */
 
-import DropboxBackend from '../backends/DummyBackend'
-import Collections, { metaProperties } from '../Collections'
-import Collection from '../Collection'
+import DropboxBackend from '../backends/DummyBackend.js'
+import Collections, { metaProperties } from '../Collections/index.js'
+import Collection from '../Collection/index.js'
+import { CollectionExistsError } from '../lib/errors.js'
 
 const { collectionsList } = metaProperties
 
@@ -89,6 +90,32 @@ describe('Collections', () => {
       const collection = await collections.delete('carlin')
 
       expect(collection).toBeDefined()
+    })
+
+    describe('when the collection file cannot be deleted', () => {
+      let carlinFile
+
+      beforeEach(() => {
+        collections.collectionsBackend.metaInfo = {
+          [collectionsList]: ['carlin', 'daria']
+        }
+        carlinFile = backend.collection('quotes/carlin')
+        carlinFile.data = ['old quote']
+        carlinFile.delete = () => Promise.reject(new Error('network error'))
+      })
+
+      it('keeps the collection in meta info', async () => {
+        await expect(collections.delete('carlin')).rejects.toThrow('network error')
+
+        expect(await collections.getList()).toEqual(['carlin', 'daria'])
+      })
+
+      it('does not let create bring the old records back', async () => {
+        await expect(collections.delete('carlin')).rejects.toThrow('network error')
+
+        await expect(collections.create('carlin')).rejects.toThrow(CollectionExistsError)
+        expect(carlinFile.data).toEqual(['old quote'])
+      })
     })
   })
 

@@ -1,112 +1,290 @@
-import SessionManager, { TOKEN_KEY } from '../SessionManager'
-import { setURL } from './testUtils'
+/* eslint max-nested-callbacks: 0 */
+import { jest } from '@jest/globals'
+import { Dropbox, DropboxAuth } from 'dropbox'
+import SessionManager, { REFRESH_TOKEN_KEY, CODE_VERIFIER_KEY, STATE_KEY } from '../index.js'
 
-describe('SessionManager', () => {
+const fakeAuth = () => ({
+  getAuthenticationUrl: jest.fn(() => Promise.resolve('https://www.dropbox.com/oauth2/authorize?x=1')),
+  getCodeVerifier: jest.fn(() => 'verifier'),
+  setCodeVerifier: jest.fn(),
+  getAccessTokenFromCode: jest.fn(() => Promise.resolve({
+    result: { access_token: 'access', refresh_token: 'refresh', expires_in: 14400 }
+  })),
+  checkAndRefreshAccessToken: jest.fn(() => Promise.resolve()),
+  setRefreshToken: jest.fn(),
+  setAccessToken: jest.fn(),
+  setAccessTokenExpiresAt: jest.fn()
+})
+
+// Like a browser: replaceState changes location.search
+const fakeHistory = location => ({
+  replaceState: jest.fn((state, title, url) => {
+    location.search = new URL(url, location.origin).search
+  })
+})
+
+const invalidGrant = () => Object.assign(new Error('Response failed with a 400 code'), {
+  status: 400,
+  error: { error: 'invalid_grant', error_description: 'refresh token is invalid or revoked' }
+})
+
+const fakeLocation = (url = 'https://app.test/app') => {
+  const parsed = new URL(url)
+  return {
+    origin: parsed.origin,
+    pathname: parsed.pathname,
+    search: parsed.search,
+    hash: parsed.hash,
+    assign: jest.fn()
+  }
+}
+
+describe('SessionManager (PKCE)', () => {
+  let auth
+  let location
+  let history
   let session
 
+  const create = (url, options = {}) => {
+    location = fakeLocation(url)
+    history = fakeHistory(location)
+    session = new SessionManager({ clientId: 'app-key', redirectUrl: '/app', auth, location, history, ...options })
+    return session
+  }
+
   beforeEach(() => {
-    session = new SessionManager({
-      apiKey: 'someApiKey',
-      redirectUrl: '/app'
+    sessionStorage.clear()
+    auth = fakeAuth()
+    create()
+  })
+
+  it('requires a client id', () => {
+    expect(() => new SessionManager({})).toThrow(/clientId/)
+  })
+
+  it('builds the redirect uri from the current origin', () => {
+    expect(session.redirectUri).toEqual('https://app.test/app')
+  })
+
+  describe('authenticate', () => {
+    it('redirects to Dropbox with PKCE and offline access and resolves false', async () => {
+      await expect(session.authenticate()).resolves.toBe(false)
+
+      expect(auth.getAuthenticationUrl).toHaveBeenCalledWith(
+        'https://app.test/app', expect.stringMatching(/^[0-9a-f]{32}$/), 'code', 'offline', undefined, undefined, true
+      )
+      expect(location.assign).toHaveBeenCalledWith('https://www.dropbox.com/oauth2/authorize?x=1')
+      expect(sessionStorage.getItem(CODE_VERIFIER_KEY)).toEqual('verifier')
+      expect(sessionStorage.getItem(STATE_KEY)).toEqual(auth.getAuthenticationUrl.mock.calls[0][1])
+    })
+
+    it('sends a new state on every sign in', async () => {
+      await session.authenticate()
+      await session.authenticate()
+
+      const [first, second] = auth.getAuthenticationUrl.mock.calls.map(call => call[1])
+      expect(first).not.toEqual(second)
+    })
+
+    it('exchanges the code from the redirect for tokens', async () => {
+      sessionStorage.setItem(CODE_VERIFIER_KEY, 'verifier')
+      sessionStorage.setItem(STATE_KEY, 's')
+      create('https://app.test/app?code=the-code&state=s&page=2#top')
+
+      await expect(session.authenticate()).resolves.toBe(true)
+
+      expect(auth.setCodeVerifier).toHaveBeenCalledWith('verifier')
+      expect(auth.getAccessTokenFromCode).toHaveBeenCalledWith('https://app.test/app', 'the-code')
+      expect(auth.setRefreshToken).toHaveBeenCalledWith('refresh')
+      expect(sessionStorage.getItem(REFRESH_TOKEN_KEY)).toEqual('refresh')
+      expect(sessionStorage.getItem(CODE_VERIFIER_KEY)).toBeNull()
+      expect(sessionStorage.getItem(STATE_KEY)).toBeNull()
+      expect(history.replaceState).toHaveBeenCalledWith(null, '', '/app?page=2#top')
+      expect(location.assign).not.toHaveBeenCalled()
+    })
+
+    it('exchanges the code once when called again before the exchange finished', async () => {
+      sessionStorage.setItem(STATE_KEY, 's')
+      create('https://app.test/app?code=the-code&state=s')
+
+      await expect(Promise.all([session.authenticate(), session.authenticate()])).resolves.toEqual([true, true])
+      expect(auth.getAccessTokenFromCode).toHaveBeenCalledTimes(1)
+    })
+
+    it('uses a stored refresh token after checking it, without redirecting', async () => {
+      sessionStorage.setItem(REFRESH_TOKEN_KEY, 'stored')
+
+      await expect(session.authenticate()).resolves.toBe(true)
+      expect(auth.setRefreshToken).toHaveBeenCalledWith('stored')
+      expect(auth.checkAndRefreshAccessToken).toHaveBeenCalledTimes(1)
+      expect(location.assign).not.toHaveBeenCalled()
+    })
+
+    it('forgets a revoked refresh token and redirects to sign in again', async () => {
+      sessionStorage.setItem(REFRESH_TOKEN_KEY, 'revoked')
+      auth.checkAndRefreshAccessToken.mockRejectedValue(invalidGrant())
+
+      await expect(session.authenticate()).resolves.toBe(false)
+      expect(sessionStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull()
+      expect(location.assign).toHaveBeenCalledWith('https://www.dropbox.com/oauth2/authorize?x=1')
+    })
+
+    it('keeps the refresh token and rejects when it cannot be checked for another reason', async () => {
+      sessionStorage.setItem(REFRESH_TOKEN_KEY, 'stored')
+      auth.checkAndRefreshAccessToken.mockRejectedValue(new TypeError('Failed to fetch'))
+
+      await expect(session.authenticate()).rejects.toThrow('Failed to fetch')
+      expect(sessionStorage.getItem(REFRESH_TOKEN_KEY)).toEqual('stored')
+      expect(location.assign).not.toHaveBeenCalled()
+    })
+
+    it('rejects when Dropbox returned an error, and the next call starts a new sign in', async () => {
+      sessionStorage.setItem(CODE_VERIFIER_KEY, 'verifier')
+      create('https://app.test/app?error=access_denied&error_description=The+user+denied&page=2#top')
+
+      await expect(session.authenticate()).rejects.toThrow('The user denied')
+      expect(location.assign).not.toHaveBeenCalled()
+      expect(history.replaceState).toHaveBeenCalledWith(null, '', '/app?page=2#top')
+      expect(sessionStorage.getItem(CODE_VERIFIER_KEY)).toBeNull()
+
+      await expect(session.authenticate()).resolves.toBe(false)
+      expect(location.assign).toHaveBeenCalledTimes(1)
+    })
+
+    it('rejects when the code exchange fails, and the next call starts a new sign in', async () => {
+      sessionStorage.setItem(CODE_VERIFIER_KEY, 'verifier')
+      sessionStorage.setItem(STATE_KEY, 's')
+      auth.getAccessTokenFromCode.mockRejectedValue(new Error('invalid_grant'))
+      create('https://app.test/app?code=old&state=s')
+
+      await expect(session.authenticate()).rejects.toThrow('invalid_grant')
+      expect(sessionStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull()
+      expect(sessionStorage.getItem(CODE_VERIFIER_KEY)).toBeNull()
+      expect(history.replaceState).toHaveBeenCalledWith(null, '', '/app')
+
+      await expect(session.authenticate()).resolves.toBe(false)
+      expect(auth.getAccessTokenFromCode).toHaveBeenCalledTimes(1)
+      expect(location.assign).toHaveBeenCalledTimes(1)
+    })
+
+    it('rejects a code when no code verifier is stored, and the next call starts a new sign in', async () => {
+      // The real SDK throws synchronously without a code verifier
+      auth.getAccessTokenFromCode.mockImplementation(() => {
+        throw new Error('You must use PKCE when generating the authorization URL')
+      })
+      sessionStorage.setItem(STATE_KEY, 's')
+      create('https://app.test/app?code=c&state=s&page=2')
+
+      await expect(session.authenticate()).rejects.toThrow('You must use PKCE')
+      expect(sessionStorage.getItem(STATE_KEY)).toBeNull()
+      expect(history.replaceState).toHaveBeenCalledWith(null, '', '/app?page=2')
+
+      await expect(session.authenticate()).resolves.toBe(false)
+      expect(location.assign).toHaveBeenCalledTimes(1)
+    })
+
+    it.each([
+      ['no state was stored', null, 'https://app.test/app?code=c&state=s&page=2'],
+      ['the state does not match', 'other', 'https://app.test/app?code=c&state=s&page=2'],
+      ['the url has no state', 's', 'https://app.test/app?code=c&page=2']
+    ])('does not exchange a code when %s, and the next call starts a new sign in', async (_, stored, url) => {
+      sessionStorage.setItem(CODE_VERIFIER_KEY, 'verifier')
+      if (stored) {
+        sessionStorage.setItem(STATE_KEY, stored)
+      }
+      create(url)
+
+      await expect(session.authenticate()).rejects.toThrow(/does not answer a sign in started here/)
+      expect(auth.getAccessTokenFromCode).not.toHaveBeenCalled()
+      expect(history.replaceState).toHaveBeenCalledWith(null, '', '/app?page=2')
+      expect(sessionStorage.getItem(CODE_VERIFIER_KEY)).toBeNull()
+
+      await expect(session.authenticate()).resolves.toBe(false)
+      expect(location.assign).toHaveBeenCalledTimes(1)
+    })
+
+    it('can keep the session in another storage', async () => {
+      const storage = new Map()
+      const mapStorage = {
+        getItem: k => (storage.has(k) ? storage.get(k) : null),
+        setItem: (k, v) => storage.set(k, v),
+        removeItem: k => storage.delete(k)
+      }
+      mapStorage.setItem(STATE_KEY, 's')
+      create('https://app.test/app?code=c&state=s', { storage: mapStorage })
+      await session.authenticate()
+
+      expect(storage.get(REFRESH_TOKEN_KEY)).toEqual('refresh')
+      expect(sessionStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull()
     })
   })
 
-  afterEach(() => {
-    // Cleanup sessionStorage
-    global.sessionStorage.removeItem(TOKEN_KEY)
-  })
-
-  describe('constructor', () => {
-    it('sets instance variables', () => {
-      expect(session.apiKey).toEqual('someApiKey')
-      expect(session.redirectUrl).toEqual('/app')
-    })
-
-    it('has defaults for redirectUrl', () => {
-      session = new SessionManager({ apiKey: 'someApiKey'})
-      expect(session.redirectUrl).toEqual('/')
+  describe('getClient', () => {
+    it('returns a Dropbox client that uses the session auth', () => {
+      const client = session.getClient()
+      expect(client).toBeInstanceOf(Dropbox)
+      expect(client.auth).toBe(auth)
     })
   })
 
-  describe('getToken', () => {
-    it('gets token from instance variable', () => {
-      session.token = 'someToken'
-      expect(session.getToken()).toEqual('someToken')
+  describe('signOut', () => {
+    it('stops the clients returned before by getClient()', async () => {
+      const fetch = jest.fn(() => Promise.resolve({
+        ok: true, status: 200, headers: { get: () => 'application/json' }, text: () => Promise.resolve('{}')
+      }))
+      sessionStorage.setItem(REFRESH_TOKEN_KEY, 'stored')
+      auth = new DropboxAuth({ clientId: 'app-key', fetch, refreshToken: 'stored', accessToken: 'access' })
+      auth.setAccessTokenExpiresAt(new Date(Date.now() + 3600 * 1000))
+      create()
+      const client = session.getClient()
+
+      session.signOut()
+
+      expect(auth.getRefreshToken()).toBeUndefined()
+      expect(auth.getAccessToken()).toBeUndefined()
+      expect(client.auth).toBe(auth)
     })
 
-    it('gets token from storage', () => {
-      const getTokenFromStorage = jest.fn()
-      getTokenFromStorage.mockReturnValue('someTokenFromStorage')
-      session.getTokenFromStorage = getTokenFromStorage
+    it('forgets the refresh token', async () => {
+      sessionStorage.setItem(REFRESH_TOKEN_KEY, 'stored')
+      session.signOut()
 
-      expect(session.getToken()).toEqual('someTokenFromStorage')
-    })
-
-    it('gets token form url', () => {
-      const getTokenFromUrl = jest.fn()
-      getTokenFromUrl.mockReturnValue('someTokenFromUrl')
-      session.getTokenFromUrl = getTokenFromUrl
-
-      expect(session.getToken()).toEqual('someTokenFromUrl')
-    })
-
-    it('redirects if there is no token', () => {
-      session.redirect = jest.fn()
-      session.getToken()
-
-      expect(session.redirect).toBeCalled()
+      expect(sessionStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull()
+      await expect(session.authenticate()).resolves.toBe(false)
     })
   })
 
-  describe('setToken', () => {
-    it('sets instance variable', () => {
-      session.setToken('someToken')
-      expect(session.token).toEqual('someToken')
-    })
+  it('recognises a revoked refresh token in the answer of the real DropboxAuth', async () => {
+    // jsdom has no Response; the SDK reads ok, status, headers and text()
+    const fetch = jest.fn(() => Promise.resolve({
+      ok: false,
+      status: 400,
+      headers: {},
+      text: () => Promise.resolve(JSON.stringify({
+        error: 'invalid_grant', error_description: 'refresh token is invalid or revoked'
+      }))
+    }))
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, 'revoked')
+    auth = new DropboxAuth({ clientId: 'app-key', fetch })
+    auth.getAuthenticationUrl = jest.fn(() => Promise.resolve('https://www.dropbox.com/oauth2/authorize?x=1'))
+    auth.getCodeVerifier = jest.fn(() => 'verifier')
+    create()
 
-    it('saves token to sessionStorage', () => {
-      session.setToken('someToken')
-      expect(global.sessionStorage.getItem(TOKEN_KEY)).toEqual('someToken')
-    })
+    await expect(session.authenticate()).resolves.toBe(false)
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('grant_type=refresh_token'), expect.anything())
+    expect(sessionStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull()
+    expect(location.assign).toHaveBeenCalled()
   })
 
-  describe('getTokenFromStorage', () => {
-    it('gets token from session storage', () => {
-      global.sessionStorage.setItem(TOKEN_KEY, 'someToken')
-      expect(session.getTokenFromStorage()).toEqual('someToken')
-    })
-
-    it('returns null if session storage is empty', () => {
-      expect(session.getTokenFromStorage()).toEqual(null)
-    })
-  })
-
-  describe('getTokenFromUrl', () => {
-    it('returns access_token url param', () => {
-      global.location.hash = 'access_token=tokenFromUrl'
-      session.removeHash = jest.fn()
-
-      expect(session.getTokenFromUrl()).toEqual('tokenFromUrl')
-      expect(session.removeHash).toBeCalled()
-    })
-  })
-
-  describe('redirect', () => {
-    it('gets authentication url from dropbox', () => {
-      session.redirect()
-      expect(global.location.href).toBeDefined()
-    })
-  })
-
-  describe('authUrl', () => {
-    it('returns current location absolute url', () => {
-      setURL('http://github.com')
-      expect(session.authUrl).toEqual('http://github.com/app')
-    })
-
-    it('strips search params', () => {
-      setURL('http://github.com#test?foo=bar')
-      expect(session.authUrl).toEqual('http://github.com/app')
-    })
+  it('uses DropboxAuth by default', () => {
+    // Browsers have fetch, jsdom does not
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = () => Promise.reject(new Error('no network in tests'))
+    try {
+      const real = new SessionManager({ clientId: 'app-key', location: fakeLocation(), history })
+      expect(real.auth).toBeInstanceOf(DropboxAuth)
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 })

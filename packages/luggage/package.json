@@ -1,20 +1,27 @@
 {
   "name": "@luggage/core",
-  "version": "2.2.2",
-  "description": "Dropbox file API wrapper for storing json data.",
-  "main": "build/index.js",
-  "scripts": {
-    "test": "jest .",
-    "lint": "eslint .",
-    "build": "babel --source-maps inline --optional runtime -d build/ src/",
-    "watch": "babel --watch --source-maps inline --optional runtime -d build/ src/",
-    "build-browser": "webpack",
-    "prepare": "yarn build && yarn build-browser",
-    "prepublish": "yarn build && yarn build-browser && yarn test"
+  "version": "3.0.0",
+  "description": "Dropbox and Google Drive file API wrapper for storing json data.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./dropbox": "./src/backends/dropbox/index.js",
+    "./google-drive": "./src/backends/google-drive/index.js",
+    "./dummy": "./src/backends/DummyBackend.js",
+    "./package.json": "./package.json"
   },
-  "directories": {
-    "build": "build",
-    "browser": "browser"
+  "main": "./src/index.js",
+  "files": [
+    "src",
+    "!src/**/__test__"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "lint": "eslint ."
   },
   "publishConfig": {
     "access": "public",
@@ -22,16 +29,15 @@
   },
   "author": "dra1n",
   "license": "MIT",
-  "dependencies": {
-    "deep-equal": "^1.0.0",
-    "dropbox": "^4.0.7",
-    "dropbox-client": "^3.0.1",
-    "events": "^2.0.0",
-    "lorgnette": "^1.2.0",
-    "node-fetch": "^3.1.1"
+  "peerDependencies": {
+    "dropbox": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "dropbox": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.2",
-    "jest": "^22.4.2"
+    "dropbox": "10.47.0"
   }
 }

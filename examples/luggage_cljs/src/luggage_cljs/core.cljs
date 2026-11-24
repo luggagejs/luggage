@@ -1,5 +1,6 @@
 (ns luggage-cljs.core
-  (:require ["@luggage/core" :refer (DropboxBackend Luggage)]))
+  (:require ["@luggage/core" :refer (Luggage)]
+            ["@luggage/core/dropbox" :refer (DropboxBackend)]))
 
 (def b (DropboxBackend. "dropbox-api-key-goes-here"))
 (def l (Luggage. b))

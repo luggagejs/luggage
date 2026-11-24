@@ -1,25 +1,29 @@
 {
   "name": "@luggage/luggage-session",
-  "version": "2.2.0",
-  "description": "Utils for obtaining and keeping dropbox authentication stuff in user session",
-  "main": "build/index.js",
+  "version": "3.0.0",
+  "description": "Dropbox authentication (OAuth 2 PKCE flow) for luggage apps",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./package.json": "./package.json"
+  },
+  "main": "./src/index.js",
+  "files": [
+    "src",
+    "!src/**/__test__"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test": "jest",
-    "test-watch": "jest --watch",
-    "build": "babel --source-maps inline --optional runtime -d build/ src/",
-    "watch": "babel --watch --source-maps inline --optional runtime -d build/ src/",
-    "prepare": "yarn run build",
-    "prepublish": "yarn run build && yarn test",
-    "lint": "eslint src"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "lint": "eslint ."
   },
   "keywords": [
-    "react",
     "luggage",
     "dropbox"
   ],
-  "directories": {
-    "build": "build"
-  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -33,14 +37,10 @@
     }
   ],
   "license": "MIT",
-  "jest": {
-    "setupTestFrameworkScriptFile": "mock-local-storage"
+  "peerDependencies": {
+    "dropbox": "^10.0.0"
   },
   "devDependencies": {
-    "jest": "^19.0.2",
-    "mock-local-storage": "^1.0.2"
-  },
-  "dependencies": {
-    "dropbox": "^4.0.7"
+    "dropbox": "10.47.0"
   }
 }
