@@ -13,7 +13,8 @@
     "clean-all": "rm -rf ./node_modules ./packages/*/node_modules ./packages/*/coverage",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "jest-coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "release": "node scripts/release.js"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
