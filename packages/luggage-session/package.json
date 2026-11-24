@@ -37,6 +37,11 @@
     }
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luggagejs/luggage.git",
+    "directory": "packages/luggage-session"
+  },
   "peerDependencies": {
     "dropbox": "^10.0.0"
   },

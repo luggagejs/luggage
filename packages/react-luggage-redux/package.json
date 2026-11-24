@@ -39,6 +39,11 @@
     }
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luggagejs/luggage.git",
+    "directory": "packages/react-luggage-redux"
+  },
   "peerDependencies": {
     "@luggage/core": "^3.0.0"
   },

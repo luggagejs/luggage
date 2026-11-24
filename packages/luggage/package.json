@@ -29,6 +29,11 @@
   },
   "author": "dra1n",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luggagejs/luggage.git",
+    "directory": "packages/luggage"
+  },
   "peerDependencies": {
     "dropbox": "^10.0.0"
   },
